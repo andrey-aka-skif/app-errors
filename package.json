@@ -1,0 +1,22 @@
+{
+  "name": "@andrey-aka-skif/app-errors",
+  "version": "1.0.0",
+  "description": "Парсер ошибок, возвращаемых web-api КДЭПА",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "babel src -d dist",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@babel/cli": "^7.23.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-syntax-dynamic-import": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/register": "^7.0.0"
+  },
+  "files": [
+    "dist"
+  ]
+}
