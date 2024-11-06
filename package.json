@@ -1,22 +1,37 @@
 {
   "name": "@andrey-aka-skif/app-errors",
-  "version": "1.0.0",
-  "description": "Парсер ошибок, возвращаемых web-api КДЭПА",
-  "main": "dist/index.js",
-  "scripts": {
-    "build": "babel src -d dist",
-    "prepare": "npm run build"
-  },
-  "dependencies": {
-    "@babel/cli": "^7.23.0"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.0.0",
-    "@babel/plugin-syntax-dynamic-import": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "@babel/register": "^7.0.0"
-  },
+  "version": "2.0.0",
+  "description": "Пакет, предоставляющий классы ошибок приложения, связанные с обращением к внешнему API и внутренней логикой",
+  "type": "module",
   "files": [
     "dist"
-  ]
+  ],
+  "main": "./dist/errorTypes.cjs",
+  "module": "./dist/errorTypes.js",
+  "exports": {
+    ".": {
+      "import": "./dist/errorTypes.js",
+      "require": "./dist/errorTypes.cjs"
+    },
+    "./logic": {
+      "import": "./dist/logicAppError.js",
+      "require": "./dist/logicAppError.cjs"
+    },
+    "./axios": {
+      "import": "./dist/axiosNetworkAppError.js",
+      "require": "./dist/axiosNetworkAppError.cjs"
+    },
+    "./superagent": {
+      "import": "./dist/superagentNetworkAppError.js",
+      "require": "./dist/superagentNetworkAppError.cjs"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
 }
