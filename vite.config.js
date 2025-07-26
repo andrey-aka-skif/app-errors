@@ -1,22 +1,19 @@
-import { resolve } from 'path'
+import { fileURLToPath, URL } from 'node:url'
 
-export default {
-    build: {
-        lib: {
-            entry: [
-                resolve(__dirname, 'src/errorTypes.js'),
-                resolve(__dirname, 'src/logicAppError.js'),
-                resolve(__dirname, 'src/axiosNetworkAppError.js'),
-                resolve(__dirname, 'src/superagentNetworkAppError.js'),
-            ],
-            name: 'AppErrors',
-            fileName: (format, name) => {
-                if (format === 'es') {
-                    return `${name}.js`
-                }
+import { defineConfig } from 'vite'
+import path from 'path'
 
-                return `${name}.${format}`
-            }
-        }
-    }
-}
+export default defineConfig({
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  build: {
+    lib: {
+      entry: path.resolve(__dirname, 'src/index.js'),
+      name: 'appErrors',
+      fileName: format => `index.${format}.js`,
+    },
+  },
+})
