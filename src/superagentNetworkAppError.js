@@ -1,5 +1,5 @@
-import { ErrorTypes } from "./errorTypes"
-import { AppError } from "./appError"
+import { ERROR_TYPE } from "./error-type"
+import { AppError } from "./base-app-error"
 
 /**
  * Объект ошибки приложения, представляющий ошибки,
@@ -22,7 +22,7 @@ export class SuperagentNetworkAppError extends AppError {
         if (this.isMaybeAppError(error)) {
             this.message = 'Ошибка при разборе ответа сервера'
         } else if (this.isDisconnect(error)) {
-            this.type = ErrorTypes.DISCONNECTED
+            this.type = ERROR_TYPE.DISCONNECTED
             this.message = 'Сервер недоступен'
         } else if (this.hasServerError(error)) {
             this.mapResponse(error.response)
@@ -77,32 +77,32 @@ export class SuperagentNetworkAppError extends AppError {
     mapResponse(response) {
         switch (response.status) {
             case 400:
-                this.type = ErrorTypes.BADREQUEST
+                this.type = ERROR_TYPE.BADREQUEST
                 this.message = 'Ошибочный формат запроса'
                 this.detail = this.tryGetDetail(response)
                 break
             case 401:
-                this.type = ErrorTypes.UNAUTHORIZED
+                this.type = ERROR_TYPE.UNAUTHORIZED
                 this.message = 'Не хватает действительных учётных данных'
                 this.detail = this.tryGetDetail(response)
                 break
             case 403:
-                this.type = ErrorTypes.FORBIDDEN
+                this.type = ERROR_TYPE.FORBIDDEN
                 this.message = 'Не авторизован'
                 this.detail = this.tryGetDetail(response)
                 break
             case 404:
-                this.type = ErrorTypes.NOTFOUND
+                this.type = ERROR_TYPE.NOTFOUND
                 this.message = 'Ресурс не найден'
                 this.detail = this.tryGetDetail(response)
                 break
             case 409:
-                this.type = ErrorTypes.CONFLICT
+                this.type = ERROR_TYPE.CONFLICT
                 this.message = 'Ресурс уже существует'
                 this.detail = this.tryGetDetail(response)
                 break
             case 500:
-                this.type = ErrorTypes.INTERNALSERVERERROR
+                this.type = ERROR_TYPE.INTERNALSERVERERROR
                 this.message = 'Ошибка сервера'
                 this.detail = this.tryGetDetail(response)
                 break
