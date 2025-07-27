@@ -7,6 +7,7 @@ import UnauthorizedError from './unauthorized-error'
 import ForbiddenError from './forbidden-error'
 import NotFoundError from './not-found-error'
 import ConflictError from './conflict-error'
+import InternalServerError from './internal-server-error'
 
 export {
   ERROR_TYPE,
@@ -18,4 +19,5 @@ export {
   ForbiddenError,
   NotFoundError,
   ConflictError,
+  InternalServerError,
 }
