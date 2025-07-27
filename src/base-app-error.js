@@ -38,22 +38,3 @@ export default class BaseAppError extends Error {
     this.details = details
   }
 }
-
-// // Конкретные типы ошибок
-// class AuthError extends ApiError {
-//   constructor(message, status, details) {
-//     super('auth', message, status, details)
-//   }
-// }
-
-// class NetworkError extends ApiError {
-//   constructor(message) {
-//     super('network', message, null)
-//   }
-// }
-
-// class ValidationError extends ApiError {
-//   constructor(message, details) {
-//     super('validation', message, 400, details)
-//   }
-// }
