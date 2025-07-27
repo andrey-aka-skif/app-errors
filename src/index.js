@@ -9,6 +9,8 @@ import ForbiddenError from './forbidden-error'
 import NotFoundError from './not-found-error'
 import ConflictError from './conflict-error'
 import InternalServerError from './internal-server-error'
+import { fromAxios } from './axios-error-builder'
+import { fromSuperagent } from './superagent-error-builder'
 
 export {
   ERROR_TYPE,
@@ -22,4 +24,6 @@ export {
   NotFoundError,
   ConflictError,
   InternalServerError,
+  fromAxios,
+  fromSuperagent,
 }
