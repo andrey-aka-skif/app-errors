@@ -15,6 +15,11 @@ describe('UnauthorizedError', () => {
       expect(error.message).toBe(ERROR_TYPE.UNAUTHORIZED)
     })
 
+    it('должен установить HTTP-статус 401', () => {
+      const error = new UnauthorizedError()
+      expect(error.status).toBe(401)
+    })
+
     it('должен использовать переданные детали или null по умолчанию', () => {
       const customDetails = { code: 401 }
       const errorWithDetails = new UnauthorizedError(customDetails)

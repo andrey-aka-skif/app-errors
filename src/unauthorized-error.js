@@ -14,5 +14,6 @@ import ERROR_TYPE from './error-type'
 export default class UnauthorizedError extends BaseAppError {
   constructor(details = null) {
     super(ERROR_TYPE.UNAUTHORIZED, ERROR_TYPE.UNAUTHORIZED, details)
+    this.status = 401
   }
 }
