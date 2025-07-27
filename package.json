@@ -1,22 +1,42 @@
 {
   "name": "@andrey-aka-skif/app-errors",
-  "version": "1.0.0",
-  "description": "Парсер ошибок, возвращаемых web-api КДЭПА",
-  "main": "dist/index.js",
-  "scripts": {
-    "build": "babel src -d dist",
-    "prepare": "npm run build"
-  },
-  "dependencies": {
-    "@babel/cli": "^7.23.0"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.0.0",
-    "@babel/plugin-syntax-dynamic-import": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "@babel/register": "^7.0.0"
+  "version": "3.0.0",
+  "description": "Пакет, предоставляющий классы ошибок приложения, связанные с обращением к внешнему API и внутренней логикой",
+  "keywords": [
+    "errors",
+    "api",
+    "axios"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js"
+    }
   },
   "files": [
     "dist"
-  ]
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "axios": "^1.10.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@vitest/eslint-plugin": "^1.1.39",
+    "@vitest/ui": "^3.1.3",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.5",
+    "globals": "^16.0.0",
+    "jsdom": "^26.0.0",
+    "vite": "^6.3.5",
+    "vitest": "^3.1.3"
+  }
 }
