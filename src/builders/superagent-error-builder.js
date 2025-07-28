@@ -1,11 +1,11 @@
-import DisconnectedError from '../disconnected-error'
-import BadRequestError from '../bad-request-error'
-import UnauthorizedError from '../unauthorized-error'
-import ForbiddenError from '../forbidden-error'
-import NotFoundError from '../not-found-error'
-import ConflictError from '../conflict-error'
-import InternalServerError from '../internal-server-error'
-import UnknownError from '../unknown-error'
+import DisconnectedError from '../errors/disconnected-error'
+import BadRequestError from '../errors/bad-request-error'
+import UnauthorizedError from '../errors/unauthorized-error'
+import ForbiddenError from '../errors/forbidden-error'
+import NotFoundError from '../errors/not-found-error'
+import ConflictError from '../errors/conflict-error'
+import InternalServerError from '../errors/internal-server-error'
+import UnknownError from '../errors/unknown-error'
 
 /**
  * Проверка на возможную ошибку приложения.
