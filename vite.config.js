@@ -14,5 +14,10 @@ export default defineConfig({
       name: 'appErrors',
       fileName: format => `index.${format}.js`,
     },
+    terserOptions: {
+      format: {
+        comments: true,
+      },
+    },
   },
 })
