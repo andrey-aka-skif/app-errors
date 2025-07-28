@@ -1,7 +1,6 @@
 import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
-import path from 'path'
 
 export default defineConfig({
   resolve: {
@@ -11,7 +10,7 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'src/index.js'),
+      entry: fileURLToPath(new URL('./src/index.js', import.meta.url)),
       name: 'appErrors',
       fileName: format => `index.${format}.js`,
     },
