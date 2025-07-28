@@ -1,6 +1,6 @@
 {
   "name": "@andrey-aka-skif/app-errors",
-  "version": "3.0.0",
+  "version": "3.0.0-alpha.3",
   "description": "Пакет, предоставляющий классы ошибок приложения, связанные с обращением к внешнему API и внутренней логикой",
   "keywords": [
     "errors",
@@ -24,9 +24,6 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "lint": "eslint ."
-  },
-  "dependencies": {
-    "axios": "^1.10.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

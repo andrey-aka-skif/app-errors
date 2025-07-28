@@ -1,5 +1,5 @@
-import BaseAppError from './base-app-error'
-import ERROR_TYPE from './error-type'
+import BaseAppError from '../base-app-error'
+import ERROR_TYPE from '../error-type'
 
 /**
  * Класс ошибки логики приложения, расширяющий базовый класс BaseAppError.
