@@ -7,6 +7,10 @@ const ERROR_TYPE = {
    */
   UNKNOWN: 'Unknown',
   /**
+   * Пользовательская ошибка
+   */
+  CUSTOM: 'Custom',
+  /**
    * Сервер недоступен
    */
   DISCONNECTED: 'Disconnected',
