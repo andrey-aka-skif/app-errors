@@ -1,6 +1,6 @@
 {
   "name": "@andrey-aka-skif/app-errors",
-  "version": "3.0.0-alpha.3",
+  "version": "3.0.0",
   "description": "Пакет, предоставляющий классы ошибок приложения, связанные с обращением к внешнему API и внутренней логикой",
   "keywords": [
     "errors",
