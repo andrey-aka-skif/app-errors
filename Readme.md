@@ -88,7 +88,7 @@ try {
   const typedError = fromAxios(error)
 
   if (typedError instanceof UnauthorizedError) {
-    // logout
+    // logout или иное необходимое действие
   }
 }
 ```
