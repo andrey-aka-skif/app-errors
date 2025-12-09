@@ -1,5 +1,7 @@
 # app-errors
 
+[![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/andrey-aka-skif/app-errors/blob/master/LICENSE)
+
 Npm-пакет, предоставляющий классы ошибок приложения, связанные с обращением к внешнему API и внутренней логикой.
 
 ## Классы ошибок
