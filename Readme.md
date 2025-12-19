@@ -1,6 +1,8 @@
 # app-errors
 
 [![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/andrey-aka-skif/app-errors/blob/master/LICENSE)
+[![CI](https://github.com/andrey-aka-skif/app-errors/actions/workflows/ci.yml/badge.svg)](https://github.com/andrey-aka-skif/app-errors/actions/workflows/ci.yml)
+[![Package](https://github.com/andrey-aka-skif/app-errors/actions/workflows/package.yml/badge.svg)](https://github.com/andrey-aka-skif/app-errors/actions/workflows/package.yml)
 
 Npm-пакет, предоставляющий классы ошибок приложения, связанные с обращением к внешнему API и внутренней логикой.
 
