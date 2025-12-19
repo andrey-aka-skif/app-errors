@@ -1,5 +1,4 @@
 import { fileURLToPath, URL } from 'node:url'
-
 import { defineConfig } from 'vite'
 
 export default defineConfig({
@@ -13,10 +12,18 @@ export default defineConfig({
       entry: fileURLToPath(new URL('./src/index.js', import.meta.url)),
       name: 'appErrors',
       fileName: format => `index.${format}.js`,
+      formats: ['es', 'umd'],
     },
+    rollupOptions: {
+      external: [],
+      output: {
+        globals: {},
+      },
+    },
+    minify: 'terser',
     terserOptions: {
       format: {
-        comments: true,
+        comments: 'some',
       },
     },
   },
