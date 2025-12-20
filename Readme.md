@@ -1,24 +1,38 @@
 # app-errors
 
+> [!Version]
+> Версия 2 оставлена для совместимости. Актуальная и поддерживаемая версия приложения - 3+.
+>
+> **Версии обратно не совместимы**.
+
 Npm-пакет, предоставляющий классы ошибок приложения, связанные с обращением к внешнему API и внутренней логикой.
+
+## Установка
+
+```shell
+npm install @andrey-aka-skif/app-errors@2
+```
+
+## Быстрый старт
+
+```js
+import { SuperagentNetworkAppError as AppError } from '@andrey-aka-skif/app-errors/superagent'
+
+try {
+    const api = new SurveysApi()
+    actualData.value = await api.surveysIdChannelsChannelIdGet(surveyId, channelId, OPTS)
+} catch (responseError) {
+    actualData.value = []
+    error.value = new AppError(toValue(responseError))
+}
+```
+
+## API
 
 - `LogicAppError` - класс, представляющий ошибки уровня логики приложения.
 - `AxiosNetworkAppError` - класс, представляющий ошибки, полученные через библиотеку Axios.
 - `AppErrorViaSuperagent` - класс, представляющий ошибки, полученные через библиотеку Superagent (а также через связку OpenApi Middleware + Superagent).
 
-## История версий
+## Ссылки
 
-### 1.0.0
-
-- Создан базовый парсер `AppError`.
-- Создан класс-заглушка `AppErrorViaAxios`. Необходимо реализовать при использовании `axios`.
-- Создан класс-заглушка `AppErrorViaSuperagent`. Фактически не должен отличаться от `AppError`.
-
-
-### 2.0.0
-
-- Проект переведен на сборщик `Vite`.
-- Класс `AppError` переделан в базовый класс и теперь не содержащий логики парсинга.
-- Создан класс `LogicAppError`, представляющий ошибки уровня логики приложения.
-- Создан класс `AxiosNetworkAppError`, представляющий ошибки, полученные через библиотеку Axios.
-- Создан класс `SuperagentNetworkAppError`, представляющий ошибки, полученные через библиотеку Superagent (а также через связку OpenApi Middleware + Superagent).
+- [История версий](CHANGELOG.md)
