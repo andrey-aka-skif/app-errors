@@ -59,4 +59,4 @@ jobs:
           npm config set -- '//192.168.100.252:3000/api/packages/usov-andrey/npm/:_authToken' "${{ secrets.PACKAGES_TOKEN }}"
 
       - name: 🚀 Publish package to Gitea Registry
-        run: npm publish
+        run: npm publish --tag latest
