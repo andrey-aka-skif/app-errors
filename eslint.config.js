@@ -1,7 +1,6 @@
 import { defineConfig, globalIgnores } from 'eslint/config'
 import globals from 'globals'
 import js from '@eslint/js'
-import pluginVitest from '@vitest/eslint-plugin'
 import eslintConfigPrettier from 'eslint-config-prettier'
 
 export default defineConfig([
@@ -21,16 +20,6 @@ export default defineConfig([
   },
 
   js.configs.recommended,
-
-  {
-    ...pluginVitest.configs.recommended,
-    files: [
-      'tests/**/*',
-      '**/*.test.js',
-      '**/*.spec.js',
-      'src/**/__tests__/**/*',
-    ],
-  },
 
   eslintConfigPrettier,
 
