@@ -57,4 +57,4 @@ jobs:
           npm config set -- '//npm.pkg.github.com/:_authToken' "${{ secrets.GH_PACKAGES_TOKEN }}"
 
       - name: 🚀 Publish package to Github Registry
-        run: npm publish --tag v2-lts
+        run: npm publish --tag lts_v2
