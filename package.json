@@ -33,7 +33,10 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "format": "prettier --write \"**/*.{js,jsx,json,md,html}\""
+    "format": "prettier --write \"**/*.{js,jsx,json,md,html}\"",
+    "preview": "echo '⚠️  Preview not available for library mode'",
+    "test": "echo '⚠️  Not tests available yet'",
+    "test:ui": "echo '⚠️  Not tests available yet'"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
