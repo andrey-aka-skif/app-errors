@@ -21,31 +21,10 @@
   "main": "./dist/cjs/index.cjs",
   "module": "./dist/es/index.js",
   "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.js"
-    },
-    "./error-types": {
-      "import": "./dist/errorTypes.js",
-      "require": "./dist/errorTypes.cjs",
-      "default": "./dist/errorTypes.js"
-    },
-    "./logic": {
-      "import": "./dist/logicAppError.js",
-      "require": "./dist/logicAppError.cjs",
-      "default": "./dist/logicAppError.js"
-    },
-    "./axios": {
-      "import": "./dist/axiosNetworkAppError.js",
-      "require": "./dist/axiosNetworkAppError.cjs",
-      "default": "./dist/axiosNetworkAppError.js"
-    },
-    "./superagent": {
-      "import": "./dist/superagentNetworkAppError.js",
-      "require": "./dist/superagentNetworkAppError.cjs",
-      "default": "./dist/superagentNetworkAppError.js"
-    }
+    "./error-types": "./dist/error-types.js",
+    "./logic": "./dist/logic.js",
+    "./axios": "./dist/axios.js",
+    "./superagent": "./dist/superagent.js"
   },
   "files": [
     "dist"
