@@ -19,11 +19,15 @@ npm install @andrey-aka-skif/app-errors@2
 import { SuperagentNetworkAppError as AppError } from '@andrey-aka-skif/app-errors/superagent'
 
 try {
-    const api = new SurveysApi()
-    actualData.value = await api.surveysIdChannelsChannelIdGet(surveyId, channelId, OPTS)
+  const api = new SurveysApi()
+  actualData.value = await api.surveysIdChannelsChannelIdGet(
+    surveyId,
+    channelId,
+    OPTS
+  )
 } catch (responseError) {
-    actualData.value = []
-    error.value = new AppError(toValue(responseError))
+  actualData.value = []
+  error.value = new AppError(toValue(responseError))
 }
 ```
 

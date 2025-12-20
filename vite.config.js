@@ -3,9 +3,13 @@ import { defineConfig } from 'vite'
 
 const entries = {
   'error-types': fileURLToPath(new URL('./src/errorTypes.js', import.meta.url)),
-  'logic': fileURLToPath(new URL('./src/logicAppError.js', import.meta.url)),
-  'axios': fileURLToPath(new URL('./src/axiosNetworkAppError.js', import.meta.url)),
-  'superagent': fileURLToPath(new URL('./src/superagentNetworkAppError.js', import.meta.url)),
+  logic: fileURLToPath(new URL('./src/logicAppError.js', import.meta.url)),
+  axios: fileURLToPath(
+    new URL('./src/axiosNetworkAppError.js', import.meta.url)
+  ),
+  superagent: fileURLToPath(
+    new URL('./src/superagentNetworkAppError.js', import.meta.url)
+  ),
 }
 
 export default defineConfig({
@@ -32,7 +36,7 @@ export default defineConfig({
           name: 'appErrors',
           globals: {},
           exports: 'named',
-        }
+        },
       ],
       external: [],
     },
