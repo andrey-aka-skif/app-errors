@@ -98,10 +98,15 @@ jobs:
           fi
           echo "✅ Сборка найдена в dist/"
 
-      - name: 🔑 Configure NPM Registry for Github
-        run: |
-          npm config set @andrey-aka-skif:registry=https://npm.pkg.github.com
-          npm config set -- '//npm.pkg.github.com/:_authToken' "${{ secrets.GH_PACKAGES_TOKEN }}"
+      - name: ✨ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+            node-version: '20'
+            cache: 'npm'
+            registry-url: https://npm.pkg.github.com
+            scope: '@andrey-aka-skif'
 
       - name: 🚀 Publish package to Github Registry
         run: npm publish --tag "${{ inputs.npm_tag }}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
