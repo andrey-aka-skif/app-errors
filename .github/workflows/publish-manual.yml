@@ -55,31 +55,26 @@ jobs:
           echo "📦 Version: $VERSION"
 
   ci:
+    needs: validate
     uses: './.github/workflows/ci.yml'
     with:
-      ref: ${{ github.ref }}
+      ref: ${{ needs.validate.outputs.ref }}
 
   publish:
-    needs: ci
+    needs: [validate, ci]
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🛒 Checkout
+      - name: 🛒 Checkout tag
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: 📦 Extract version from tag
-        id: get-version
-        run: |
-          VERSION="${GITHUB_REF#refs/tags/v}"
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "📌 Версия из тега: ${VERSION}"
+          ref: ${{ needs.validate.outputs.ref }}
 
       - name: 📝 Update version in package.json
         run: |
-          npm version ${{ steps.get-version.outputs.version }} --no-git-tag-version --allow-same-version
-          echo "✅ Версия обновлена в package.json"
+          npm version ${{ needs.validate.outputs.version }} --no-git-tag-version --allow-same-version
+          echo "✅ Версия в package.json обновлена до ${{ needs.validate.outputs.version }}"
 
       - name: 📥 Restore build from cache
         id: restore-cache
