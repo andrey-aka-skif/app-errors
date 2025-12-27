@@ -24,6 +24,11 @@ jobs:
               fetch-depth: 0
               ref: ${{ inputs.ref || github.ref }}
 
+          - name: Validate checked-out ref
+            run: |
+              git rev-parse HEAD
+              git status --porcelain
+
           - name: ✨ Setup Node.js
             uses: actions/setup-node@v4
             with:
