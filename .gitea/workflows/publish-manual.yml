@@ -102,10 +102,10 @@ jobs:
           fi
           echo "✅ Сборка найдена в dist/"
 
-      - name: 🔑 Configure NPM Registry for Github
+      - name: 🔑 Configure NPM Registry for Gitea
         run: |
-          npm config set @andrey-aka-skif:registry=https://npm.pkg.github.com
-          npm config set -- '//npm.pkg.github.com/:_authToken' "${{ secrets.GH_PACKAGES_TOKEN }}"
+          npm config set @andrey-aka-skif:registry=https://192.168.100.252:3000/api/packages/usov-andrey/npm/
+          npm config set -- '//192.168.100.252:3000/api/packages/usov-andrey/npm/:_authToken' "${{ secrets.PACKAGES_TOKEN }}"
 
-      - name: 🚀 Publish package to Github Registry
+      - name: 🚀 Publish package to Gitea Registry
         run: npm publish --tag "${{ inputs.npm_tag }}"
