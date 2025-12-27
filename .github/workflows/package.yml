@@ -1,15 +1,16 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 
-name: Build And Publish NPM Package
+name: Build And Publish NPM Package on New Tag
 
 on:
   push:
     tags: ['v*.*.*']
-  workflow_dispatch:
 
 jobs:
   ci:
     uses: './.github/workflows/ci.yml'
+    with:
+      ref: ${{ github.ref }}
 
   publish:
     needs: ci
