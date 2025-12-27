@@ -9,6 +9,11 @@ on:
         description: 'Имя тега для сборки (например, v1.2.3)'
         required: true
         type: string
+      npm_tag:
+        description: 'npm dist-tag (по умолчанию: replay)'
+        required: false
+        default: replay
+        type: string
 
 jobs:
   validate:
@@ -99,4 +104,4 @@ jobs:
           npm config set -- '//npm.pkg.github.com/:_authToken' "${{ secrets.GH_PACKAGES_TOKEN }}"
 
       - name: 🚀 Publish package to Github Registry
-        run: npm publish --tag latest
+        run: npm publish --tag "${{ inputs.npm_tag }}"
