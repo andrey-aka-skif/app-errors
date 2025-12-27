@@ -53,10 +53,14 @@ jobs:
           fi
           echo "✅ Сборка найдена в dist/"
 
-      - name: 🔑 Configure NPM Registry for Gitea
-        run: |
-          npm config set @andrey-aka-skif:registry=https://192.168.100.252:3000/api/packages/usov-andrey/npm/
-          npm config set -- '//192.168.100.252:3000/api/packages/usov-andrey/npm/:_authToken' "${{ secrets.PACKAGES_TOKEN }}"
+      - name: ✨ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+            node-version: '20'
+            registry-url: 'https://192.168.100.252:3000/api/packages/usov-andrey/'
+            scope: '@andrey-aka-skif'
 
       - name: 🚀 Publish package to Gitea Registry
         run: npm publish --tag lts_v2
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
