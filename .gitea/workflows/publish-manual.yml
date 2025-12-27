@@ -39,6 +39,7 @@ jobs:
             exit 1
           fi
           echo "✅ Формат тега OK: $TAG"
+        shell: bash
 
       - name: 🔍 Validate tag exists
         run: |
