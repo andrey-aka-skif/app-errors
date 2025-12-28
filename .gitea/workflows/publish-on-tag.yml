@@ -57,7 +57,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
             node-version: '20'
-            registry-url: 'https://192.168.100.252:3000/api/packages/usov-andrey/'
+            registry-url: 'https://192.168.100.252:3000/api/packages/usov-andrey/npm/'
             scope: '@andrey-aka-skif'
 
       - name: 🚀 Publish package to Gitea Registry
