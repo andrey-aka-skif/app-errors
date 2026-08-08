@@ -38,7 +38,9 @@
     "dist"
   ],
   "scripts": {
+    "prebuild": "prettier --check .",
     "build": "vite build",
+    "postbuild": "node scripts/verify-dist.js",
     "verify:dist": "node scripts/verify-dist.js",
     "test": "vitest run",
     "test:watch": "vitest",
