@@ -1,5 +1,13 @@
 /**
- * Типы ошибок
+ * Типы ошибок.
+ *
+ * Ключ — идентификатор в коде, значение — машинный токен, попадающий
+ * в сериализацию. Тип — единственный сериализуемый дискриминатор ошибки:
+ * ветвление строится по нему, а не по сообщению, которое человекочитаемо
+ * и может быть переопределено вызывающей стороной.
+ *
+ * Значения токенов входят в формат хранения, поэтому меняются только вместе
+ * с мажорной версией пакета.
  */
 const ERROR_TYPE = Object.freeze({
   /**
@@ -11,13 +19,29 @@ const ERROR_TYPE = Object.freeze({
    */
   CUSTOM: 'Custom',
   /**
+   * Ошибка логики приложения
+   */
+  LOGIC: 'Logic',
+  /**
    * Сервер недоступен
    */
   DISCONNECTED: 'Disconnected',
   /**
+   * Истекло время ожидания ответа
+   */
+  TIMEOUT: 'Timeout',
+  /**
+   * Запрос отменён вызывающей стороной
+   */
+  CANCELED: 'Canceled',
+  /**
+   * Ответ сервера со статусом, для которого нет отдельного класса
+   */
+  HTTP: 'Http',
+  /**
    * 400 Bad Request
    */
-  BADREQUEST: 'BadRequest',
+  BAD_REQUEST: 'BadRequest',
   /**
    * 401 Unauthorized
    */
@@ -29,19 +53,23 @@ const ERROR_TYPE = Object.freeze({
   /**
    * 404 Not Found
    */
-  NOTFOUND: 'NotFound',
+  NOT_FOUND: 'NotFound',
   /**
    * 409 Conflict
    */
   CONFLICT: 'Conflict',
   /**
+   * 422 Unprocessable Entity
+   */
+  UNPROCESSABLE_ENTITY: 'UnprocessableEntity',
+  /**
+   * 429 Too Many Requests
+   */
+  TOO_MANY_REQUESTS: 'TooManyRequests',
+  /**
    * 500 Internal Server Error
    */
-  INTERNALSERVERERROR: 'InternalServerError',
-  /**
-   * Ошибка логики приложения
-   */
-  LOGIC: 'Logic',
+  INTERNAL_SERVER_ERROR: 'InternalServerError',
 })
 
 export default ERROR_TYPE

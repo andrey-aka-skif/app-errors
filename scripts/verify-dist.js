@@ -13,17 +13,20 @@ import { fileURLToPath, URL } from 'node:url'
 
 const DIST = fileURLToPath(new URL('../dist', import.meta.url))
 
-/** Классы, для которых имя должно совпадать с именем экспорта. */
-const ERROR_CLASSES = [
+/** Классы, создаваемые без обязательных аргументов. */
+const NULLARY_CLASSES = [
   'UnknownError',
-  'CustomError',
-  'LogicError',
   'DisconnectedError',
+  'TimeoutError',
+  'CanceledError',
+  'HttpError',
   'BadRequestError',
   'UnauthorizedError',
   'ForbiddenError',
   'NotFoundError',
   'ConflictError',
+  'UnprocessableEntityError',
+  'TooManyRequestsError',
   'InternalServerError',
 ]
 
@@ -35,6 +38,15 @@ const check = (condition, message) => {
   }
 }
 
+const checkThrows = (fn, ErrorClass, message) => {
+  try {
+    fn()
+    failures.push(message)
+  } catch (error) {
+    check(error instanceof ErrorClass, message)
+  }
+}
+
 const files = readdirSync(DIST)
 check(files.includes('index.es.js'), 'В dist/ нет index.es.js')
 check(files.includes('index.umd.js'), 'В dist/ нет index.umd.js')
@@ -42,16 +54,7 @@ check(files.includes('index.umd.js'), 'В dist/ нет index.umd.js')
 // Именно href: динамический import на Windows не принимает путь вида "D:\...".
 const pkg = await import(new URL('../dist/index.es.js', import.meta.url).href)
 
-for (const className of ERROR_CLASSES) {
-  const ErrorClass = pkg[className]
-
-  if (!ErrorClass) {
-    failures.push(`Экспорт ${className} отсутствует в сборке`)
-    continue
-  }
-
-  const instance = new ErrorClass()
-
+const checkInstance = (className, instance) => {
   check(
     instance.name === className,
     `${className}: name равен "${instance.name}" вместо "${className}"`
@@ -62,6 +65,33 @@ for (const className of ERROR_CLASSES) {
   )
 }
 
+for (const className of NULLARY_CLASSES) {
+  const ErrorClass = pkg[className]
+
+  if (!ErrorClass) {
+    failures.push(`Экспорт ${className} отсутствует в сборке`)
+    continue
+  }
+
+  checkInstance(className, new ErrorClass())
+}
+
+// Классы с обязательными аргументами проверяются отдельно: вызов без
+// аргументов у них выбрасывает TypeError.
+checkInstance('CustomError', new pkg.CustomError('SMOKE_TYPE'))
+checkInstance('LogicError', new pkg.LogicError('дымовая проверка'))
+
+checkThrows(
+  () => new pkg.CustomError(),
+  TypeError,
+  'CustomError без типа не выбросил TypeError'
+)
+checkThrows(
+  () => new pkg.LogicError(),
+  TypeError,
+  'LogicError без сообщения не выбросил TypeError'
+)
+
 // Билдеры должны переживать сборку целиком, а не только по частям.
 const notFound = pkg.fromAxios({
   isAxiosError: true,
@@ -71,9 +101,14 @@ check(
   notFound instanceof pkg.NotFoundError,
   'fromAxios не вернул NotFoundError для статуса 404'
 )
+check(notFound instanceof pkg.HttpError, 'NotFoundError не наследует HttpError')
 check(
   notFound.details === 'нет такого',
   `fromAxios потерял details: ${JSON.stringify(notFound.details)}`
+)
+check(
+  notFound.message === 'Not Found',
+  `fromAxios потерял причинную фразу: ${notFound.message}`
 )
 
 check(

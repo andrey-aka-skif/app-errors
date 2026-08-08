@@ -1,20 +1,28 @@
-import BaseAppError from '../base-app-error.js'
 import ERROR_TYPE from '../error-type.js'
+import HttpError from './http-error.js'
 
 /**
- * Класс ошибки "Неверный запрос" (Bad Request), расширяющий базовый класс BaseAppError.
- * Предназначен для обработки ситуаций, когда клиент отправляет некорректные данные.
+ * Класс ошибки "Некорректный запрос" (Bad Request), расширяющий класс HttpError.
+ * Предназначен для обработки ситуаций, когда запрос составлен неверно.
  * Статус ошибки соответствует HTTP-коду 400.
  *
  * @class
- * @extends BaseAppError
- * @see {@link BaseAppError} - Базовый класс для всех ошибок приложения
- * @see {@link ERROR_TYPE.BADREQUEST} - Тип ошибки и сообщение, передаваемые в конструктор
+ * @extends HttpError
+ * @see {@link HttpError} - Головной класс семейства ошибок ответа сервера
+ * @see {@link ERROR_TYPE.BAD_REQUEST} - Тип ошибки, передаваемый в конструктор
  */
-export default class BadRequestError extends BaseAppError {
-  constructor(details = null) {
-    super(ERROR_TYPE.BADREQUEST, ERROR_TYPE.BADREQUEST, details)
+export default class BadRequestError extends HttpError {
+  /**
+   * Создаёт экземпляр ошибки "Некорректный запрос".
+   *
+   * @constructor
+   * @param {*} [details=null] - Дополнительные детали ошибки (по умолчанию null)
+   * @param {Object} [options={}] - Необязательные параметры
+   * @param {string} [options.message] - Сообщение; по умолчанию "Bad Request"
+   * @param {*} [options.cause] - Исходная ошибка HTTP-библиотеки
+   */
+  constructor(details = null, { message, cause } = {}) {
+    super(400, details, { type: ERROR_TYPE.BAD_REQUEST, message, cause })
     this.name = 'BadRequestError'
-    this.status = 400
   }
 }
