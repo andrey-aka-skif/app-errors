@@ -1,18 +1,28 @@
 import { describe, it, expect } from 'vitest'
-import { ERROR_TYPE, BaseAppError, ForbiddenError } from '../src/index.js'
+import {
+  ERROR_TYPE,
+  BaseAppError,
+  HttpError,
+  ForbiddenError,
+} from '../src/index.js'
 
 describe('ForbiddenError', () => {
   describe('constructor', () => {
-    it('должен создать экземпляр ForbiddenError и BaseAppError', () => {
+    it('должен создать экземпляр ForbiddenError, HttpError и BaseAppError', () => {
       const error = new ForbiddenError()
       expect(error).toBeInstanceOf(ForbiddenError)
+      expect(error).toBeInstanceOf(HttpError)
       expect(error).toBeInstanceOf(BaseAppError)
     })
 
-    it('должен установить тип и сообщение ошибки из ERROR_TYPE.FORBIDDEN', () => {
+    it('должен установить тип ошибки из ERROR_TYPE.FORBIDDEN', () => {
       const error = new ForbiddenError()
       expect(error.type).toBe(ERROR_TYPE.FORBIDDEN)
-      expect(error.message).toBe(ERROR_TYPE.FORBIDDEN)
+    })
+
+    it('должен установить сообщение из причинной фразы статуса', () => {
+      const error = new ForbiddenError()
+      expect(error.message).toBe('Forbidden')
     })
 
     it('должен установить HTTP-статус 403', () => {
@@ -28,7 +38,9 @@ describe('ForbiddenError', () => {
       expect(errorWithDetails.details).toBe(customDetails)
       expect(errorWithoutDetails.details).toBeNull()
     })
+  })
 
+  describe('граничные случаи', () => {
     it('должен корректно обрабатывать undefined в параметрах', () => {
       const error = new ForbiddenError(undefined)
       expect(error.details).toBeNull()

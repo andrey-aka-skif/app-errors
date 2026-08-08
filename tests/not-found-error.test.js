@@ -1,18 +1,28 @@
 import { describe, it, expect } from 'vitest'
-import { ERROR_TYPE, BaseAppError, NotFoundError } from '../src/index.js'
+import {
+  ERROR_TYPE,
+  BaseAppError,
+  HttpError,
+  NotFoundError,
+} from '../src/index.js'
 
 describe('NotFoundError', () => {
   describe('constructor', () => {
-    it('должен создать экземпляр NotFoundError и BaseAppError', () => {
+    it('должен создать экземпляр NotFoundError, HttpError и BaseAppError', () => {
       const error = new NotFoundError()
       expect(error).toBeInstanceOf(NotFoundError)
+      expect(error).toBeInstanceOf(HttpError)
       expect(error).toBeInstanceOf(BaseAppError)
     })
 
-    it('должен установить тип и сообщение ошибки из ERROR_TYPE.NOTFOUND', () => {
+    it('должен установить тип ошибки из ERROR_TYPE.NOT_FOUND', () => {
       const error = new NotFoundError()
-      expect(error.type).toBe(ERROR_TYPE.NOTFOUND)
-      expect(error.message).toBe(ERROR_TYPE.NOTFOUND)
+      expect(error.type).toBe(ERROR_TYPE.NOT_FOUND)
+    })
+
+    it('должен установить сообщение из причинной фразы статуса', () => {
+      const error = new NotFoundError()
+      expect(error.message).toBe('Not Found')
     })
 
     it('должен установить HTTP-статус 404', () => {
@@ -28,7 +38,9 @@ describe('NotFoundError', () => {
       expect(errorWithDetails.details).toBe(customDetails)
       expect(errorWithoutDetails.details).toBeNull()
     })
+  })
 
+  describe('граничные случаи', () => {
     it('должен корректно обрабатывать undefined в параметрах', () => {
       const error = new NotFoundError(undefined)
       expect(error.details).toBeNull()

@@ -27,5 +27,29 @@ describe('LogicError', () => {
       const error = new LogicError(TEST_MESSAGE)
       expect(error.details).toBeNull()
     })
+
+    it('Должен сохранять исходную ошибку', () => {
+      const original = new Error('исходная')
+      const error = new LogicError(TEST_MESSAGE, null, { cause: original })
+
+      expect(error.cause).toBe(original)
+    })
+  })
+
+  describe('проверка обязательного сообщения', () => {
+    it.each([
+      ['без аргументов', undefined],
+      ['null', null],
+      ['пустая строка', ''],
+      ['строка из пробелов', '   '],
+      ['число', 42],
+      ['объект', {}],
+    ])('%s — выбрасывает TypeError', (_описание, message) => {
+      expect(() => new LogicError(message)).toThrow(TypeError)
+    })
+
+    it('сообщение об ошибке называет класс и параметр', () => {
+      expect(() => new LogicError()).toThrow(/LogicError.*message/)
+    })
   })
 })

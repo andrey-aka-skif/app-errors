@@ -1,18 +1,28 @@
 import { describe, it, expect } from 'vitest'
-import { ERROR_TYPE, BaseAppError, UnauthorizedError } from '../src/index.js'
+import {
+  ERROR_TYPE,
+  BaseAppError,
+  HttpError,
+  UnauthorizedError,
+} from '../src/index.js'
 
 describe('UnauthorizedError', () => {
   describe('constructor', () => {
-    it('должен создать экземпляр UnauthorizedError и BaseAppError', () => {
+    it('должен создать экземпляр UnauthorizedError, HttpError и BaseAppError', () => {
       const error = new UnauthorizedError()
       expect(error).toBeInstanceOf(UnauthorizedError)
+      expect(error).toBeInstanceOf(HttpError)
       expect(error).toBeInstanceOf(BaseAppError)
     })
 
-    it('должен установить тип и сообщение ошибки из ERROR_TYPE.UNAUTHORIZED', () => {
+    it('должен установить тип ошибки из ERROR_TYPE.UNAUTHORIZED', () => {
       const error = new UnauthorizedError()
       expect(error.type).toBe(ERROR_TYPE.UNAUTHORIZED)
-      expect(error.message).toBe(ERROR_TYPE.UNAUTHORIZED)
+    })
+
+    it('должен установить сообщение из причинной фразы статуса', () => {
+      const error = new UnauthorizedError()
+      expect(error.message).toBe('Unauthorized')
     })
 
     it('должен установить HTTP-статус 401', () => {
@@ -28,7 +38,9 @@ describe('UnauthorizedError', () => {
       expect(errorWithDetails.details).toBe(customDetails)
       expect(errorWithoutDetails.details).toBeNull()
     })
+  })
 
+  describe('граничные случаи', () => {
     it('должен корректно обрабатывать undefined в параметрах', () => {
       const error = new UnauthorizedError(undefined)
       expect(error.details).toBeNull()
