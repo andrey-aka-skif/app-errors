@@ -8,121 +8,243 @@ Npm-пакет, предоставляющий набор типизирован
 
 ## Установка
 
+Пакет публикуется в GitHub Packages, поэтому scope `@andrey-aka-skif` нужно направить на соответствующий реестр. В `.npmrc` проекта:
+
+```ini
+@andrey-aka-skif:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+Токену достаточно права `read:packages`.
+
 ```shell
 npm install @andrey-aka-skif/app-errors
 ```
 
+> Поле `version` в `package.json` репозитория всегда равно `0.0.0` — это заглушка, а не ошибка. Реальную версию проставляет CI при публикации, беря её из git-тега вида `v1.2.3`. В опубликованном пакете версия корректная.
+
 ## Быстрый старт
+
+Ошибка HTTP-клиента приводится билдером к типизированной ошибке приложения, дальше ветвление строится по `instanceof`:
 
 ```js
 import {
-  NotFoundError,
+  fromAxios,
+  HttpError,
   UnauthorizedError,
-  LogicError,
+  NotFoundError,
+  TimeoutError,
+  CanceledError,
+  DisconnectedError,
 } from '@andrey-aka-skif/app-errors'
 
-/*
-  Документация не окончена
-*/
+try {
+  const response = await axios.get(`/api/orders/${id}`)
+  return response.data
+} catch (error) {
+  const appError = fromAxios(error)
+
+  if (appError instanceof UnauthorizedError) {
+    return logout()
+  }
+
+  if (appError instanceof NotFoundError) {
+    return null
+  }
+
+  if (appError instanceof CanceledError) {
+    return
+  }
+
+  if (
+    appError instanceof TimeoutError ||
+    appError instanceof DisconnectedError
+  ) {
+    return showRetryBanner()
+  }
+
+  if (appError instanceof HttpError) {
+    // Статус доступен и тогда, когда для него нет отдельного класса
+    log(`Сервер ответил ${appError.status}`, appError.details)
+  }
+
+  throw appError
+}
 ```
+
+Билдеры не выбрасывают исключений и всегда возвращают экземпляр одного из классов пакета, поэтому вызов внутри `catch` безопасен. Исходная ошибка библиотеки сохраняется в стандартном свойстве `cause` — из неё доступны URL, метод, заголовки и исходный стектрейс:
+
+```js
+const appError = fromAxios(error)
+
+console.error(appError.name, appError.type, appError.message)
+console.error(appError.details) // тело ответа сервера
+console.error(appError.cause) // исходная ошибка Axios
+```
+
+Собственные ошибки приложения создаются напрямую:
+
+```js
+import {
+  LogicError,
+  CustomError,
+  ERROR_TYPE,
+} from '@andrey-aka-skif/app-errors'
+
+if (order.total < 0) {
+  throw new LogicError('Сумма заказа не может быть отрицательной', {
+    orderId: order.id,
+  })
+}
+
+throw new CustomError('PERMISSION_DENIED', { requiredRole: 'admin' })
+```
+
+Для ветвления в коде используется `instanceof`, для сериализации и сравнения — поле `type`:
+
+```js
+if (appError.type === ERROR_TYPE.NOT_FOUND) {
+  /* ... */
+}
+```
+
+Сообщение (`message`) человекочитаемо и может быть переопределено вызывающей стороной, поэтому дискриминатором не является.
 
 ## API
 
+### Иерархия классов
+
+```
+Error
+└─ BaseAppError                       абстрактный, прямое создание запрещено
+   ├─ UnknownError
+   ├─ CustomError
+   ├─ LogicError
+   ├─ DisconnectedError
+   ├─ TimeoutError
+   ├─ CanceledError
+   └─ HttpError                       несёт HTTP-статус в поле status
+      ├─ BadRequestError              400
+      ├─ UnauthorizedError            401
+      ├─ ForbiddenError               403
+      ├─ NotFoundError                404
+      ├─ ConflictError                409
+      ├─ UnprocessableEntityError     422
+      ├─ TooManyRequestsError         429
+      └─ InternalServerError          500
+```
+
+### Свойства экземпляра
+
+| Свойство  | Описание                                                                                |
+| --------- | --------------------------------------------------------------------------------------- |
+| `name`    | Имя класса ошибки                                                                       |
+| `type`    | Значение из `ERROR_TYPE`; единственный сериализуемый дискриминатор                      |
+| `message` | Человекочитаемое сообщение; может быть переопределено                                   |
+| `details` | Дополнительные детали: тело ответа сервера или произвольные данные; по умолчанию `null` |
+| `status`  | HTTP-статус ответа; только у `HttpError` и его наследников                              |
+| `cause`   | Исходная ошибка. Свойство отсутствует, если причина не передавалась                     |
+
 ### Классы ошибок
 
-- `BaseAppError` - Базовый класс для ошибок приложения, расширяющий встроенный класс Error. Добавляет пользовательские свойства: тип ошибки и дополнительные детали. Класс не должен быть создан напрямую. Прочие классы ошибок наследуются от `BaseAppError`.
+- `BaseAppError` — базовый класс, расширяющий встроенный `Error`. Абстрактный: прямое создание выбрасывает исключение. Используется для проверки «это ошибка нашего пакета».
 
-- `BadRequestError` - Класс ошибки "Неверный запрос" (Bad Request). Предназначен для обработки ситуаций, когда клиент отправляет некорректные данные. Статус ошибки соответствует HTTP-коду 400.
+- `HttpError(status, details = null, { type, message, cause } = {})` — ошибка ответа сервера. Головной класс семейства статусов, создаётся напрямую, когда для статуса нет отдельного класса. Сообщение по умолчанию выводится из статуса: для известных статусов — причинная фраза (`503` → `Service Unavailable`), для прочих целых — `HTTP <статус>`.
 
-- `ConflictError` - Класс ошибки "Конфликт" (Conflict). Предназначен для обработки ситуаций, когда запрос не может быть выполнен из-за конфликта с текущим состоянием системы. Статус ошибки соответствует HTTP-коду 409.
+Классы конкретных статусов принимают одинаковые аргументы — `(details = null, { message, cause } = {})`:
 
-- `CustomError` - Класс пользовательской ошибки. Позволяет создавать ошибки с произвольным типом, сообщением и дополнительными деталями.
+- `BadRequestError` — 400 Bad Request. Клиент отправил некорректные данные.
+- `UnauthorizedError` — 401 Unauthorized. Пользователь не аутентифицирован.
+- `ForbiddenError` — 403 Forbidden. Пользователь аутентифицирован, но прав недостаточно.
+- `NotFoundError` — 404 Not Found. Запрашиваемый ресурс отсутствует.
+- `ConflictError` — 409 Conflict. Запрос конфликтует с текущим состоянием системы.
+- `UnprocessableEntityError` — 422 Unprocessable Entity. Запрос синтаксически корректен, но не может быть обработан.
+- `TooManyRequestsError` — 429 Too Many Requests. Превышен лимит обращений.
+- `InternalServerError` — 500 Internal Server Error. Непредвиденная ошибка на стороне сервера.
 
-- `DisconnectedError` - Класс ошибки, связанной с потерей соединения. Предназначен для обработки ситуаций, когда приложение теряет связь с внешними ресурсами.
+Ошибки, не связанные с ответом сервера, — та же сигнатура `(details = null, { message, cause } = {})`, поля `status` у них нет:
 
-- `ForbiddenError` - Класс ошибки "Доступ запрещён" (Forbidden). Предназначен для обработки ситуаций, когда пользователь авторизован, но не имеет прав на выполнение действия. Статус ошибки соответствует HTTP-коду 403.
+- `DisconnectedError` — связь с сервером не установлена.
+- `TimeoutError` — истекло время ожидания ответа.
+- `CanceledError` — запрос отменён вызывающей стороной.
+- `UnknownError` — тип ошибки определить не удалось.
 
-- `InternalServerError` - Класс ошибки "Внутренняя ошибка сервера" (Internal Server Error). Предназначен для обработки ситуаций, когда сервер столкнулся с непредвиденной ошибкой, препятствующей выполнению запроса. Статус ошибки соответствует HTTP-коду 500.
+Особые сигнатуры:
 
-- `LogicError` - Класс ошибки логики приложения. Предназначен для обработки ошибок, связанных с логическими нарушениями в работе приложения.
-
-- `NotFoundError` - Класс ошибки "Ресурс не найден" (Not Found). Предназначен для обработки ситуаций, когда запрашиваемый ресурс отсутствует. Статус ошибки соответствует HTTP-коду 404.
-
-- `UnauthorizedError` - Класс ошибки "Доступ запрещён" (Unauthorized). Предназначен для обработки ситуаций, когда пользователь не авторизован или у него отсутствуют права доступа. Статус ошибки соответствует HTTP-коду 401.
-
-- `UnknownError` - Класс ошибки "Неизвестная ошибка" (Unknown Error). Предназначен для обработки ситуаций, когда тип ошибки не может быть определён или является неожиданным.
+- `CustomError(type, details = null, { message, cause } = {})` — ошибка с произвольным типом. Параметр `type` обязателен: пустое значение или не строка дают `TypeError`.
+- `LogicError(message, details = null, { cause } = {})` — ошибка логики приложения. Сообщение обязательно и передаётся первым позиционным аргументом: осмысленный текст здесь может задать только вызывающая сторона. Пустое значение или не строка дают `TypeError`.
 
 ### Типы ошибок
 
-Перечисление `ERROR_TYPE` дублирует типизированные классы и в первую очередь используется для текстовых констант поля `message`.
+Перечисление `ERROR_TYPE` — набор машинных токенов, попадающих в сериализацию. Тип служит дискриминатором ошибки при передаче за пределы процесса: там, где `instanceof` недоступен, ветвление строится по `type`, а не по сообщению.
 
 ```js
 const ERROR_TYPE = {
-  /**
-   * Неизвестная ошиибка
-   */
   UNKNOWN: 'Unknown',
-  /**
-   * Пользовательская ошибка
-   */
   CUSTOM: 'Custom',
-  /**
-   * Сервер недоступен
-   */
-  DISCONNECTED: 'Disconnected',
-  /**
-   * 400 Bad Request
-   */
-  BADREQUEST: 'BadRequest',
-  /**
-   * 401 Unauthorized
-   */
-  UNAUTHORIZED: 'Unauthorized',
-  /**
-   * 403 Forbidden
-   */
-  FORBIDDEN: 'Forbidden',
-  /**
-   * 404 Not Found
-   */
-  NOTFOUND: 'NotFound',
-  /**
-   * 409 Conflict
-   */
-  CONFLICT: 'Conflict',
-  /**
-   * 500 Internal Server Error
-   */
-  INTERNALSERVERERROR: 'InternalServerError',
-  /**
-   * Ошибка логики приложения
-   */
   LOGIC: 'Logic',
+  DISCONNECTED: 'Disconnected',
+  TIMEOUT: 'Timeout',
+  CANCELED: 'Canceled',
+  HTTP: 'Http',
+  BAD_REQUEST: 'BadRequest',
+  UNAUTHORIZED: 'Unauthorized',
+  FORBIDDEN: 'Forbidden',
+  NOT_FOUND: 'NotFound',
+  CONFLICT: 'Conflict',
+  UNPROCESSABLE_ENTITY: 'UnprocessableEntity',
+  TOO_MANY_REQUESTS: 'TooManyRequests',
+  INTERNAL_SERVER_ERROR: 'InternalServerError',
 }
 ```
+
+Объект заморожен: попытка изменить или дополнить его выбрасывает `TypeError` в строгом режиме.
 
 ### Билдеры
 
-- `fromAxios` - преобразование ошибок HTTP-библиотеки Axios
-- `fromSuperagent` - преобразование ошибок HTTP-библиотеки Superagent
+Билдеры приводят ошибку HTTP-библиотеки к классу пакета. Оба никогда не выбрасывают исключений — любой непригодный для разбора аргумент даёт `UnknownError` — и на каждой ветке кладут исходную ошибку в `cause`.
 
-## Пример использования
+- `fromAxios(error)` — преобразование ошибок [Axios](https://axios-http.com/). Порядок разбора: ответ сервера (`error.response`) → отмена (`code === 'ERR_CANCELED'`) → таймаут (`code` из `ECONNABORTED`, `ETIMEDOUT`) → обрыв связи (`code === 'ERR_NETWORK'` либо запрос без ответа) → `UnknownError`.
+
+- `fromSuperagent(error)` — преобразование ошибок [Superagent](https://forwardemail.github.io/superagent/). Порядок разбора: таймаут (`error.timeout`) → исключение, не являющееся ошибкой Superagent (нет свойства `error`) → обрыв связи (нет `body`, `response` или `statusText`) → ответ сервера.
+
+Ответ сервера отображается в класс по статусу; статус без отдельного класса даёт обобщённый `HttpError` с сохранёнными `status` и телом ответа:
 
 ```js
-import { fromAxios, UnauthorizedError } from '@andrey-aka-skif/app-errors'
+// Сервер ответил 502
+const appError = fromAxios(error)
 
-...
-
-try {
-  const response = await axios.post('/auth/login', { credential })
-} catch (error) {
-  const typedError = fromAxios(error)
-
-  if (typedError instanceof UnauthorizedError) {
-    // logout или иное необходимое действие
-  }
-}
+appError instanceof HttpError // true
+appError.type // 'Http'
+appError.status // 502
+appError.message // 'Bad Gateway'
 ```
+
+Тело ответа попадает в `details`. Axios берётся из `response.data`, Superagent — из `response.body`; внутри тела приоритет такой: `detail`, затем `Detail`, затем всё тело целиком, иначе `null`.
+
+## Миграция 3.x → 4.0
+
+Версия 4.0 содержит ломающие изменения.
+
+**Ключи `ERROR_TYPE` переведены в SCREAMING_SNAKE.** Значения токенов не изменились, поэтому сохранённые данные пересчитывать не нужно — правки требуются только в коде.
+
+| 3.x                   | 4.0                     |
+| --------------------- | ----------------------- |
+| `BADREQUEST`          | `BAD_REQUEST`           |
+| `NOTFOUND`            | `NOT_FOUND`             |
+| `INTERNALSERVERERROR` | `INTERNAL_SERVER_ERROR` |
+
+**Поле `message` больше не равно машинному токену.** Было `NotFound`, стало `Not Found`. Код, сравнивавший `message` с токеном, нужно перевести на `instanceof` или на `type`.
+
+**Статус без отдельного класса даёт `HttpError`, а не `UnknownError`.** Ответы 418, 502, 503, 504 и прочие теперь сохраняют `status` и тело ответа. Ветки вида `instanceof UnknownError` для ошибок сервера следует пересмотреть: `UnknownError` остаётся только для того, что разобрать не удалось.
+
+**Таймаут и отмена выделены в отдельные классы.** Раньше таймаут был неотличим от обрыва связи, а отмена запроса уходила в `DisconnectedError` или `UnknownError`. Теперь это `TimeoutError` и `CanceledError` — обе наследуются от `BaseAppError`, но не от `HttpError`.
+
+**Сообщение `CustomError` переехало в опции.** Было `new CustomError(type, message, details)`, стало `new CustomError(type, details, { message })`.
+
+**Обязательные параметры теперь проверяются.** `CustomError` без типа и `LogicError` без сообщения выбрасывают `TypeError` вместо создания ошибки с пустыми полями.
+
+**Кастомное сообщение доступно у любого класса** — вторым параметром-опцией: `new NotFoundError(details, { message: 'Заказ не найден' })`. Тип при этом не меняется.
 
 ## Ссылки
 
