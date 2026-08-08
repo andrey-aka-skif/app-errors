@@ -1,14 +1,20 @@
 import { describe, it, expect } from 'vitest'
 import {
   fromAxios,
+  ERROR_TYPE,
   BaseAppError,
+  HttpError,
   BadRequestError,
   UnauthorizedError,
   ForbiddenError,
   NotFoundError,
   ConflictError,
+  UnprocessableEntityError,
+  TooManyRequestsError,
   InternalServerError,
   DisconnectedError,
+  TimeoutError,
+  CanceledError,
   UnknownError,
 } from '../../src/index.js'
 
@@ -33,6 +39,8 @@ const MAPPED_STATUSES = [
   [403, ForbiddenError],
   [404, NotFoundError],
   [409, ConflictError],
+  [422, UnprocessableEntityError],
+  [429, TooManyRequestsError],
   [500, InternalServerError],
 ]
 
@@ -44,6 +52,7 @@ describe('fromAxios', () => {
         const error = fromAxios(serverError(status, null))
 
         expect(error).toBeInstanceOf(ErrorClass)
+        expect(error).toBeInstanceOf(HttpError)
         expect(error).toBeInstanceOf(BaseAppError)
         expect(error.status).toBe(status)
       }
@@ -59,28 +68,41 @@ describe('fromAxios', () => {
     )
   })
 
-  describe('ответ сервера с неизвестным статусом', () => {
-    // 422, 429 и 5xx от прокси — самые частые из непокрытых. Сейчас все они
-    // схлопываются в UnknownError, теряя и статус, и тело ответа.
-    it.each([418, 422, 429, 502, 503, 504])(
-      'статус %i преобразуется в UnknownError',
+  describe('ответ сервера со статусом без отдельного класса', () => {
+    // 502, 503 и 504 от прокси — самые частые статусы без отдельного
+    // класса и самые ретраибельные. Статус и тело ответа должны доезжать
+    // до потребителя, иначе решение о повторе принять не на чем.
+    it.each([418, 502, 503, 504])(
+      'статус %i преобразуется в обобщённый HttpError',
       status => {
         const error = fromAxios(serverError(status, { detail: 'подробности' }))
 
-        expect(error).toBeInstanceOf(UnknownError)
+        expect(error).toBeInstanceOf(HttpError)
+        expect(error).not.toBeInstanceOf(UnknownError)
+        expect(error.type).toBe(ERROR_TYPE.HTTP)
       }
     )
 
-    it('исходный статус не сохраняется', () => {
-      const error = fromAxios(serverError(503, null))
-
-      expect(error.status).toBeUndefined()
+    it('исходный статус сохраняется', () => {
+      expect(fromAxios(serverError(503, null)).status).toBe(503)
     })
 
-    it('тело ответа не сохраняется', () => {
+    it('тело ответа сохраняется', () => {
       const error = fromAxios(serverError(503, { detail: 'подробности' }))
 
-      expect(error.details).toBeNull()
+      expect(error.details).toBe('подробности')
+    })
+
+    it('сообщение берётся из причинной фразы статуса', () => {
+      expect(fromAxios(serverError(502, null)).message).toBe('Bad Gateway')
+    })
+
+    it('нечисловой статус не ломает разбор', () => {
+      // Поиск идёт по Map: ключ вида "constructor" не достаёт из таблицы
+      // унаследованное свойство Object.prototype.
+      const error = fromAxios(serverError('constructor', null))
+
+      expect(error).toBeInstanceOf(HttpError)
     })
   })
 
@@ -122,28 +144,65 @@ describe('fromAxios', () => {
       expect(error).toBeInstanceOf(DisconnectedError)
     })
 
-    it('таймаут преобразуется в DisconnectedError', () => {
-      // Таймаут неотличим от обрыва связи: у него тоже есть request и нет
-      // response, а code не проверяется.
-      const error = fromAxios({
-        isAxiosError: true,
-        code: 'ECONNABORTED',
-        request: {},
-      })
+    it('код ERR_NETWORK преобразуется в DisconnectedError', () => {
+      const error = fromAxios({ isAxiosError: true, code: 'ERR_NETWORK' })
 
       expect(error).toBeInstanceOf(DisconnectedError)
     })
 
-    it('отменённый запрос преобразуется в UnknownError', () => {
+    it.each(['ECONNABORTED', 'ETIMEDOUT'])(
+      'код %s преобразуется в TimeoutError',
+      code => {
+        // Проверка кода стоит до ветки error.request: у таймаута запрос тоже
+        // есть, и без неё он был бы неотличим от обрыва связи.
+        const error = fromAxios({ isAxiosError: true, code, request: {} })
+
+        expect(error).toBeInstanceOf(TimeoutError)
+        expect(error).not.toBeInstanceOf(DisconnectedError)
+      }
+    )
+
+    it('отменённый запрос преобразуется в CanceledError', () => {
       const error = fromAxios({ isAxiosError: true, code: 'ERR_CANCELED' })
 
-      expect(error).toBeInstanceOf(UnknownError)
+      expect(error).toBeInstanceOf(CanceledError)
+    })
+
+    it('отмена распознаётся и при наличии запроса', () => {
+      const error = fromAxios({
+        isAxiosError: true,
+        code: 'ERR_CANCELED',
+        request: {},
+      })
+
+      expect(error).toBeInstanceOf(CanceledError)
     })
 
     it('ошибка без response и без request преобразуется в UnknownError', () => {
       const error = fromAxios({ isAxiosError: true })
 
       expect(error).toBeInstanceOf(UnknownError)
+    })
+  })
+
+  describe('исходная ошибка сохраняется в cause', () => {
+    it.each([
+      ['ответ сервера', serverError(404, null)],
+      ['неизвестный статус', serverError(503, null)],
+      ['обрыв связи', { isAxiosError: true, request: {} }],
+      ['таймаут', { isAxiosError: true, code: 'ECONNABORTED', request: {} }],
+      ['отмена', { isAxiosError: true, code: 'ERR_CANCELED' }],
+      ['ошибка без ответа и запроса', { isAxiosError: true }],
+    ])('%s', (_описание, source) => {
+      // Без cause теряются URL, метод, заголовки и исходный стектрейс —
+      // система сбора ошибок схлопнула бы всё в несколько групп.
+      expect(fromAxios(source).cause).toBe(source)
+    })
+
+    it('ошибка не от Axios тоже попадает в cause', () => {
+      const source = new Error('что-то пошло не так')
+
+      expect(fromAxios(source).cause).toBe(source)
     })
   })
 
