@@ -9,6 +9,8 @@ on:
 env:
   # Active LTS: с 28.10.2025, EOL 28.04.2028
   NODE_VERSION: '24'
+  REGISTRY_URL: 'https://192.168.100.252:3000/api/packages/usov-andrey/npm/'
+  NPM_SCOPE: '@andrey-aka-skif'
 
 jobs:
   ci:
@@ -61,8 +63,8 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
-          registry-url: 'https://192.168.100.252:3000/api/packages/usov-andrey/npm/'
-          scope: '@andrey-aka-skif'
+          registry-url: ${{ env.REGISTRY_URL }}
+          scope: ${{ env.NPM_SCOPE }}
 
       - name: 🚀 Publish package to Gitea Registry
         run: npm publish --tag latest
