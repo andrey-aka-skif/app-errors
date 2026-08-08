@@ -47,24 +47,11 @@ jobs:
       - name: 📝 Lint
         run: npm run lint
 
-      - name: 🎨 Check formatting
-        run: npm run format:check
-
-      - name: 🏗️ Build and cache
-        id: cache-build
-        uses: actions/cache@v6
-        with:
-          path: dist/
-          key: build-${{ gitea.sha }}-${{ hashFiles('src/**', 'package.json') }}
-          restore-keys: |
-            build-
-
-      - name: 🛠️ Build if cache missed
-        if: steps.cache-build.outputs.cache-hit != 'true'
+      # Сборка занимает меньше секунды, кэшировать нечего: публикация
+      # собирает пакет заново из исходников тега.
+      # Хуки prebuild и postbuild проверяют форматирование и собранный пакет.
+      - name: 🛠️ Build
         run: npm run build
-
-      - name: 🔎 Verify built package
-        run: npm run verify:dist
 
       - name: 🧪 Run tests
         run: npm test

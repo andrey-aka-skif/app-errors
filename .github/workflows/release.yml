@@ -69,14 +69,20 @@ jobs:
           echo "🏷️ dist-tag: $NPM_TAG"
         shell: bash
 
+  # Только для релиза: его тег всегда свежий, снят с актуальной ветки.
+  # Ручной запуск — переиздание уже выпущенной версии, и код старого тега
+  # заведомо не пройдёт сегодняшний CI: шаги ссылаются на скрипты, которых
+  # в том package.json ещё не было.
   ci:
     needs: validate
+    if: github.event_name == 'release'
     uses: './.github/workflows/ci.yml'
     with:
       ref: ${{ needs.validate.outputs.ref }}
 
   publish:
     needs: [validate, ci]
+    if: always() && needs.validate.result == 'success' && needs.ci.result != 'failure' && needs.ci.result != 'cancelled'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -89,34 +95,26 @@ jobs:
           fetch-depth: 0
           ref: ${{ needs.validate.outputs.ref }}
 
+      - name: ✨ Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          registry-url: ${{ env.REGISTRY_URL }}
+          scope: ${{ env.NPM_SCOPE }}
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
       - name: 📝 Update version in package.json
         run: |
           npm version ${{ needs.validate.outputs.version }} --no-git-tag-version --allow-same-version
           echo "✅ Версия в package.json обновлена до ${{ needs.validate.outputs.version }}"
 
-      - name: 📥 Restore build from cache
-        id: restore-cache
-        uses: actions/cache/restore@v6
-        with:
-          path: dist/
-          key: build-${{ github.sha }}-${{ hashFiles('src/**', 'package.json') }}
-          restore-keys: |
-            build-
-
-      - name: ✅ Verify build exists
-        run: |
-          if [ ! -d "dist" ] || [ -z "$(ls -A dist/)" ]; then
-            echo "❌ Каталог сборки пуст или отсутствует"
-            exit 1
-          fi
-          echo "✅ Сборка найдена в dist/"
-
-      - name: ✨ Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          registry-url: ${{ env.REGISTRY_URL }}
-          scope: ${{ env.NPM_SCOPE }}
+      # Собираем из исходников тега, а не восстанавливаем из кэша: кэш живёт
+      # неделю, а его префиксный откат подсунул бы сборку от чужого коммита.
+      - name: 🛠️ Build
+        run: npm run build
 
       - name: 🚀 Publish package to Github Registry
         run: npm publish --tag "${{ needs.validate.outputs.npm_tag }}"
