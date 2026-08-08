@@ -1,14 +1,19 @@
 import { describe, it, expect } from 'vitest'
 import {
   fromSuperagent,
+  ERROR_TYPE,
   BaseAppError,
+  HttpError,
   BadRequestError,
   UnauthorizedError,
   ForbiddenError,
   NotFoundError,
   ConflictError,
+  UnprocessableEntityError,
+  TooManyRequestsError,
   InternalServerError,
   DisconnectedError,
+  TimeoutError,
   UnknownError,
 } from '../../src/index.js'
 
@@ -33,12 +38,29 @@ const disconnectError = () => ({
   message: 'connect ECONNREFUSED',
 })
 
+/**
+ * Фикстура таймаута в том виде, в каком его формирует Superagent
+ * (RequestBase._timeoutError): обычный Error со свойствами timeout, code
+ * и errno. Свойства "error" в нём нет — потому проверка таймаута и стоит
+ * в билдере до isNotSuperagentError.
+ */
+const timeoutError = () => {
+  const error = new Error('Timeout of 5000ms exceeded')
+  error.timeout = 5000
+  error.code = 'ECONNABORTED'
+  error.errno = 'ETIME'
+
+  return error
+}
+
 const MAPPED_STATUSES = [
   [400, BadRequestError],
   [401, UnauthorizedError],
   [403, ForbiddenError],
   [404, NotFoundError],
   [409, ConflictError],
+  [422, UnprocessableEntityError],
+  [429, TooManyRequestsError],
   [500, InternalServerError],
 ]
 
@@ -50,6 +72,7 @@ describe('fromSuperagent', () => {
         const error = fromSuperagent(serverError(status, null))
 
         expect(error).toBeInstanceOf(ErrorClass)
+        expect(error).toBeInstanceOf(HttpError)
         expect(error).toBeInstanceOf(BaseAppError)
         expect(error.status).toBe(status)
       }
@@ -67,22 +90,28 @@ describe('fromSuperagent', () => {
     )
   })
 
-  describe('ответ сервера с неизвестным статусом', () => {
-    it.each([418, 422, 429, 502, 503, 504])(
-      'статус %i преобразуется в UnknownError',
+  describe('ответ сервера со статусом без отдельного класса', () => {
+    it.each([418, 502, 503, 504])(
+      'статус %i преобразуется в обобщённый HttpError',
       status => {
         const error = fromSuperagent(
           serverError(status, { detail: 'подробности' })
         )
 
-        expect(error).toBeInstanceOf(UnknownError)
+        expect(error).toBeInstanceOf(HttpError)
+        expect(error).not.toBeInstanceOf(UnknownError)
+        expect(error.type).toBe(ERROR_TYPE.HTTP)
       }
     )
 
-    it('исходный статус не сохраняется', () => {
-      const error = fromSuperagent(serverError(503, null))
+    it('исходный статус сохраняется', () => {
+      expect(fromSuperagent(serverError(503, null)).status).toBe(503)
+    })
 
-      expect(error.status).toBeUndefined()
+    it('тело ответа сохраняется', () => {
+      const error = fromSuperagent(serverError(503, { detail: 'подробности' }))
+
+      expect(error.details).toBe('подробности')
     })
   })
 
@@ -123,12 +152,20 @@ describe('fromSuperagent', () => {
         expect(fromSuperagent(error)).toBeInstanceOf(DisconnectedError)
       }
     )
+  })
 
-    it('таймаут преобразуется в DisconnectedError', () => {
-      // Флаг timeout не проверяется: срабатывает та же ветка, что и на обрыв.
-      const error = fromSuperagent({ error: true, timeout: 5000 })
+  describe('истечение времени ожидания', () => {
+    it('таймаут преобразуется в TimeoutError', () => {
+      const error = fromSuperagent(timeoutError())
 
-      expect(error).toBeInstanceOf(DisconnectedError)
+      expect(error).toBeInstanceOf(TimeoutError)
+      expect(error).not.toBeInstanceOf(DisconnectedError)
+    })
+
+    it('таймаут распознаётся, хотя свойства error в нём нет', () => {
+      // Ветка стоит до isNotSuperagentError: иначе таймаут ушёл бы
+      // в UnknownError, а распознавание осталось бы мёртвым кодом.
+      expect(fromSuperagent({ timeout: 5000 })).toBeInstanceOf(TimeoutError)
     })
   })
 
@@ -145,6 +182,18 @@ describe('fromSuperagent', () => {
       const error = fromSuperagent({ response: { status: 404 } })
 
       expect(error).toBeInstanceOf(UnknownError)
+    })
+  })
+
+  describe('исходная ошибка сохраняется в cause', () => {
+    it.each([
+      ['ответ сервера', serverError(404, null)],
+      ['неизвестный статус', serverError(503, null)],
+      ['обрыв связи', disconnectError()],
+      ['таймаут', timeoutError()],
+      ['исключение не от Superagent', { response: { status: 404 } }],
+    ])('%s', (_описание, source) => {
+      expect(fromSuperagent(source).cause).toBe(source)
     })
   })
 

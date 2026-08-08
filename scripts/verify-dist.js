@@ -93,10 +93,11 @@ checkThrows(
 )
 
 // Билдеры должны переживать сборку целиком, а не только по частям.
-const notFound = pkg.fromAxios({
+const source = {
   isAxiosError: true,
   response: { status: 404, data: { detail: 'нет такого' } },
-})
+}
+const notFound = pkg.fromAxios(source)
 check(
   notFound instanceof pkg.NotFoundError,
   'fromAxios не вернул NotFoundError для статуса 404'
@@ -109,6 +110,32 @@ check(
 check(
   notFound.message === 'Not Found',
   `fromAxios потерял причинную фразу: ${notFound.message}`
+)
+check(notFound.cause === source, 'fromAxios не передал исходную ошибку в cause')
+
+// Статус, для которого нет отдельного класса, должен сохраняться.
+const badGateway = pkg.fromAxios({
+  isAxiosError: true,
+  response: { status: 502, data: { detail: 'шлюз' } },
+})
+check(
+  badGateway instanceof pkg.HttpError && badGateway.status === 502,
+  `fromAxios потерял статус 502: ${badGateway.status}`
+)
+check(badGateway.details === 'шлюз', 'fromAxios потерял тело ответа для 502')
+
+check(
+  pkg.fromAxios({ isAxiosError: true, code: 'ERR_CANCELED' }) instanceof
+    pkg.CanceledError,
+  'fromAxios не опознал отменённый запрос'
+)
+check(
+  pkg.fromAxios({
+    isAxiosError: true,
+    code: 'ECONNABORTED',
+    request: {},
+  }) instanceof pkg.TimeoutError,
+  'fromAxios не опознал таймаут'
 )
 
 check(

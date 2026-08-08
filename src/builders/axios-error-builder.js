@@ -1,70 +1,36 @@
-import DisconnectedError from '../errors/disconnected-error.js'
-import BadRequestError from '../errors/bad-request-error.js'
-import UnauthorizedError from '../errors/unauthorized-error.js'
-import ForbiddenError from '../errors/forbidden-error.js'
-import NotFoundError from '../errors/not-found-error.js'
-import ConflictError from '../errors/conflict-error.js'
-import InternalServerError from '../errors/internal-server-error.js'
+import { isParsable } from './is-parsable.js'
+import { createDetailExtractor } from './create-detail-extractor.js'
+import { statusToError } from './http-status-map.js'
 import UnknownError from '../errors/unknown-error.js'
+import DisconnectedError from '../errors/disconnected-error.js'
+import TimeoutError from '../errors/timeout-error.js'
+import CanceledError from '../errors/canceled-error.js'
 
-/**
- * Пригоден ли аргумент для разбора.
- * @description Отсеивает null, undefined и примитивы: обращение к их
- * свойствам либо выбрасывает TypeError, либо не имеет смысла.
- * @param {*} error - Значение, переданное в билдер
- * @returns {boolean} true, если значение можно разбирать
- */
-const isParsable = error => {
-  return typeof error === 'object' && error !== null
-}
+/** Axios кладёт тело ответа в свойство "data". */
+const getDetail = createDetailExtractor('data')
 
-/**
- * Попробовать получить значения для свойства "detail" из ответа сервера.
- * Проверяет несколько вариантов доступа к данным: "data.detail", "data.Detail", "data".
- * @param {*} response - Ответ сервера
- * @returns {*} Значение "detail", если оно существует, иначе null
- */
-const tryGetDetail = response => {
-  return (
-    response?.data?.detail ?? response?.data?.Detail ?? response?.data ?? null
-  )
-}
-
-/**
- * Преобразует серверную ошибку в соответствующий класс ошибки.
- * Сопоставляет статус-код ответа с конкретным типом ошибки.
- * @param {*} error - Объект ошибки с серверным ответом
- * @returns {BaseAppError} Экземпляр соответствующего класса ошибки
- */
-const getServerError = error => {
-  const detail = tryGetDetail(error.response)
-
-  switch (error.response.status) {
-    case 400:
-      return new BadRequestError(detail)
-    case 401:
-      return new UnauthorizedError(detail)
-    case 403:
-      return new ForbiddenError(detail)
-    case 404:
-      return new NotFoundError(detail)
-    case 409:
-      return new ConflictError(detail)
-    case 500:
-      return new InternalServerError(detail)
-    default:
-      return new UnknownError()
-  }
-}
+/** Коды Axios, означающие истечение времени ожидания. */
+const TIMEOUT_CODES = ['ECONNABORTED', 'ETIMEDOUT']
 
 /**
  * Основная функция преобразования ошибок Axios в стандартные ошибки приложения.
- * Выполняет последовательную проверку типов ошибок:
+ * Выполняет последовательную проверку:
  * 1. Пригодность аргумента для разбора
  * 2. Проверка, является ли ошибка Axios (error.isAxiosError)
  * 3. Наличие ответа от сервера (error.response)
- * 4. Наличие запроса без ответа (error.request)
- * Возвращает соответствующий класс ошибки на основе результатов проверок.
+ * 4. Отмена запроса (code === 'ERR_CANCELED')
+ * 5. Истечение времени ожидания (code из TIMEOUT_CODES)
+ * 6. Обрыв связи: code === 'ERR_NETWORK' либо запрос без ответа
+ *
+ * Отмена и таймаут проверяются до ветки error.request: у обоих запрос есть,
+ * а ответа нет, и без проверки кода они уходили бы в DisconnectedError.
+ * Ответ сервера проверяется первым: он информативнее кода транспорта,
+ * и одновременно с кодом Axios его не выставляет.
+ *
+ * Исходная ошибка передаётся в cause на каждой ветке: без неё теряются URL,
+ * метод, заголовки и исходный стектрейс, а система сбора ошибок схлопывает
+ * все обращения в несколько групп по одинаковым сообщениям.
+ *
  * Никогда не выбрасывает исключение: функция вызывается в catch-блоках,
  * где собственное падение скрыло бы исходную ошибку.
  * @param {*} error - Исходная ошибка от Axios
@@ -72,20 +38,32 @@ const getServerError = error => {
  */
 export const fromAxios = error => {
   if (!isParsable(error)) {
-    return new UnknownError()
+    return new UnknownError(null, { cause: error })
   }
 
   if (!error.isAxiosError) {
-    return new UnknownError()
+    return new UnknownError(null, { cause: error })
   }
 
   if (error.response) {
-    return getServerError(error)
+    return statusToError(
+      error.response.status,
+      getDetail(error.response),
+      error
+    )
   }
 
-  if (error.request) {
-    return new DisconnectedError()
+  if (error.code === 'ERR_CANCELED') {
+    return new CanceledError(null, { cause: error })
   }
 
-  return new UnknownError()
+  if (TIMEOUT_CODES.includes(error.code)) {
+    return new TimeoutError(null, { cause: error })
+  }
+
+  if (error.code === 'ERR_NETWORK' || error.request) {
+    return new DisconnectedError(null, { cause: error })
+  }
+
+  return new UnknownError(null, { cause: error })
 }
