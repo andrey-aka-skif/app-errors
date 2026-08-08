@@ -1,20 +1,28 @@
-import BaseAppError from '../base-app-error.js'
 import ERROR_TYPE from '../error-type.js'
+import HttpError from './http-error.js'
 
 /**
- * Класс ошибки "Доступ запрещён" (Forbidden), расширяющий базовый класс BaseAppError.
- * Предназначен для обработки ситуаций, когда пользователь авторизован, но не имеет прав на выполнение действия.
- * Тип и сообщение ошибки соответствуют значению `ERROR_TYPE.FORBIDDEN`.
+ * Класс ошибки "Доступ запрещён" (Forbidden), расширяющий класс HttpError.
+ * Предназначен для обработки ситуаций, когда доступ к ресурсу запрещён.
+ * Статус ошибки соответствует HTTP-коду 403.
  *
  * @class
- * @extends BaseAppError
- * @see {@link BaseAppError} - Базовый класс для всех ошибок приложения
- * @see {@link ERROR_TYPE.FORBIDDEN} - Тип ошибки и сообщение, передаваемые в конструктор
+ * @extends HttpError
+ * @see {@link HttpError} - Головной класс семейства ошибок ответа сервера
+ * @see {@link ERROR_TYPE.FORBIDDEN} - Тип ошибки, передаваемый в конструктор
  */
-export default class ForbiddenError extends BaseAppError {
-  constructor(details = null) {
-    super(ERROR_TYPE.FORBIDDEN, ERROR_TYPE.FORBIDDEN, details)
+export default class ForbiddenError extends HttpError {
+  /**
+   * Создаёт экземпляр ошибки "Доступ запрещён".
+   *
+   * @constructor
+   * @param {*} [details=null] - Дополнительные детали ошибки (по умолчанию null)
+   * @param {Object} [options={}] - Необязательные параметры
+   * @param {string} [options.message] - Сообщение; по умолчанию "Forbidden"
+   * @param {*} [options.cause] - Исходная ошибка HTTP-библиотеки
+   */
+  constructor(details = null, { message, cause } = {}) {
+    super(403, details, { type: ERROR_TYPE.FORBIDDEN, message, cause })
     this.name = 'ForbiddenError'
-    this.status = 403
   }
 }

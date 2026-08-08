@@ -1,18 +1,28 @@
 import { describe, it, expect } from 'vitest'
-import { ERROR_TYPE, BaseAppError, BadRequestError } from '../src/index.js'
+import {
+  ERROR_TYPE,
+  BaseAppError,
+  HttpError,
+  BadRequestError,
+} from '../src/index.js'
 
 describe('BadRequestError', () => {
   describe('constructor', () => {
-    it('должен создать экземпляр BadRequestError и BaseAppError', () => {
+    it('должен создать экземпляр BadRequestError, HttpError и BaseAppError', () => {
       const error = new BadRequestError()
       expect(error).toBeInstanceOf(BadRequestError)
+      expect(error).toBeInstanceOf(HttpError)
       expect(error).toBeInstanceOf(BaseAppError)
     })
 
-    it('должен установить тип и сообщение ошибки из ERROR_TYPE.BADREQUEST', () => {
+    it('должен установить тип ошибки из ERROR_TYPE.BAD_REQUEST', () => {
       const error = new BadRequestError()
-      expect(error.type).toBe(ERROR_TYPE.BADREQUEST)
-      expect(error.message).toBe(ERROR_TYPE.BADREQUEST)
+      expect(error.type).toBe(ERROR_TYPE.BAD_REQUEST)
+    })
+
+    it('должен установить сообщение из причинной фразы статуса', () => {
+      const error = new BadRequestError()
+      expect(error.message).toBe('Bad Request')
     })
 
     it('должен использовать переданные детали или null по умолчанию', () => {
@@ -33,7 +43,7 @@ describe('BadRequestError', () => {
       const error = new BadRequestError()
       expect(error).toBeInstanceOf(Error)
       expect(error.name).toBe('BadRequestError')
-      expect(error.message).toBe(ERROR_TYPE.BADREQUEST)
+      expect(error.message).toBe('Bad Request')
     })
   })
 
