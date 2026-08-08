@@ -117,6 +117,9 @@ jobs:
       - name: 🛠️ Build
         run: npm run build
 
+      # Здесь остаётся PAT, в отличие от GitHub. Автоматический GITEA_TOKEN
+      # не имеет авторизации на запись в реестр пакетов — документация Gitea
+      # прямо предписывает обходиться персональным токеном.
       - name: 🚀 Publish package to Gitea Registry
         run: npm publish --tag "${{ needs.validate.outputs.npm_tag }}"
         env:
