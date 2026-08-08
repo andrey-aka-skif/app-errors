@@ -9,6 +9,8 @@ on:
 env:
   # Active LTS: с 28.10.2025, EOL 28.04.2028
   NODE_VERSION: '24'
+  REGISTRY_URL: 'https://npm.pkg.github.com'
+  NPM_SCOPE: '@andrey-aka-skif'
 
 jobs:
   ci:
@@ -62,8 +64,8 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
-          registry-url: https://npm.pkg.github.com
-          scope: '@andrey-aka-skif'
+          registry-url: ${{ env.REGISTRY_URL }}
+          scope: ${{ env.NPM_SCOPE }}
 
       - name: 🚀 Publish package to Github Registry
         run: npm publish --tag latest
