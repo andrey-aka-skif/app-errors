@@ -6,7 +6,7 @@ describe('LogicError', () => {
   const TEST_DETAILS = { sum: 42 }
 
   describe('constructor', () => {
-    it('Должен быть наследником LogicAppError и BaseAppError', () => {
+    it('Должен быть наследником LogicError и BaseAppError', () => {
       const error = new LogicError(TEST_MESSAGE)
       expect(error).toBeInstanceOf(LogicError)
       expect(error).toBeInstanceOf(BaseAppError)

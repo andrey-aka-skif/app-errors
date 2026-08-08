@@ -1,5 +1,5 @@
-import BaseAppError from '../base-app-error'
-import ERROR_TYPE from '../error-type'
+import BaseAppError from '../base-app-error.js'
+import ERROR_TYPE from '../error-type.js'
 
 /**
  * Класс ошибки "Ресурс не найден" (Not Found), расширяющий базовый класс BaseAppError.
@@ -14,6 +14,7 @@ import ERROR_TYPE from '../error-type'
 export default class NotFoundError extends BaseAppError {
   constructor(details = null) {
     super(ERROR_TYPE.NOTFOUND, ERROR_TYPE.NOTFOUND, details)
+    this.name = 'NotFoundError'
     this.status = 404
   }
 }

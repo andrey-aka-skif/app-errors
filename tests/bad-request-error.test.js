@@ -31,7 +31,8 @@ describe('BadRequestError', () => {
 
     it('должен сохранять свойства Error', () => {
       const error = new BadRequestError()
-      expect(error.name).toBe('Error')
+      expect(error).toBeInstanceOf(Error)
+      expect(error.name).toBe('BadRequestError')
       expect(error.message).toBe(ERROR_TYPE.BADREQUEST)
     })
   })

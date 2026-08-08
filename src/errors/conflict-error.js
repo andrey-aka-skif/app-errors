@@ -1,5 +1,5 @@
-import BaseAppError from '../base-app-error'
-import ERROR_TYPE from '../error-type'
+import BaseAppError from '../base-app-error.js'
+import ERROR_TYPE from '../error-type.js'
 
 /**
  * Класс ошибки "Конфликт" (Conflict), расширяющий базовый класс BaseAppError.
@@ -14,6 +14,7 @@ import ERROR_TYPE from '../error-type'
 export default class ConflictError extends BaseAppError {
   constructor(details = null) {
     super(ERROR_TYPE.CONFLICT, ERROR_TYPE.CONFLICT, details)
+    this.name = 'ConflictError'
     this.status = 409
   }
 }

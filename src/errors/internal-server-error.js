@@ -1,5 +1,5 @@
-import BaseAppError from '../base-app-error'
-import ERROR_TYPE from '../error-type'
+import BaseAppError from '../base-app-error.js'
+import ERROR_TYPE from '../error-type.js'
 
 /**
  * Класс ошибки "Внутренняя ошибка сервера" (Internal Server Error), расширяющий базовый класс BaseAppError.
@@ -18,6 +18,7 @@ export default class InternalServerError extends BaseAppError {
       ERROR_TYPE.INTERNALSERVERERROR,
       details
     )
+    this.name = 'InternalServerError'
     this.status = 500
   }
 }

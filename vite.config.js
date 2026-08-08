@@ -12,9 +12,6 @@ export default defineConfig({
     sourcemap: true,
     minify: 'terser',
     terserOptions: {
-      // Имена классов ошибок попадают в this.name и в стектрейсы —
-      // без этого потребитель увидит в логах однобуквенные огрызки.
-      keep_classnames: true,
       format: {
         comments: 'some',
       },

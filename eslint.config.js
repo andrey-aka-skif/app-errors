@@ -41,12 +41,16 @@ export default defineConfig([
   },
 
   {
-    name: 'app/node-configs',
-    files: ['*.config.js'],
+    name: 'app/node-scripts',
+    files: ['*.config.js', 'scripts/**/*.js'],
     languageOptions: {
       globals: {
         ...globals.node,
       },
+    },
+    rules: {
+      // Вывод в консоль — это и есть интерфейс скриптов сборки.
+      'no-console': 'off',
     },
   },
 ])
