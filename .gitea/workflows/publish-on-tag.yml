@@ -6,6 +6,10 @@ on:
   push:
     tags: ['v*.*.*']
 
+env:
+  # Active LTS: с 28.10.2025, EOL 28.04.2028
+  NODE_VERSION: '24'
+
 jobs:
   ci:
     uses: './.gitea/workflows/ci.yml'
@@ -16,11 +20,11 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     container:
-      image: node:20-bullseye
+      image: node:24-bookworm
 
     steps:
       - name: 🛒 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -38,7 +42,7 @@ jobs:
 
       - name: 📥 Restore build from cache
         id: restore-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: dist/
           key: build-${{ gitea.sha }}-${{ hashFiles('src/**', 'package.json') }}
@@ -54,9 +58,9 @@ jobs:
           echo "✅ Сборка найдена в dist/"
 
       - name: ✨ Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           registry-url: 'https://192.168.100.252:3000/api/packages/usov-andrey/npm/'
           scope: '@andrey-aka-skif'
 
