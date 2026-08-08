@@ -63,5 +63,8 @@ jobs:
         if: steps.cache-build.outputs.cache-hit != 'true'
         run: npm run build
 
+      - name: 🔎 Verify built package
+        run: npm run verify:dist
+
       - name: 🧪 Run tests
         run: npm test

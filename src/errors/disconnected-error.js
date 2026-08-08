@@ -1,5 +1,5 @@
-import BaseAppError from '../base-app-error'
-import ERROR_TYPE from '../error-type'
+import BaseAppError from '../base-app-error.js'
+import ERROR_TYPE from '../error-type.js'
 
 /**
  * Класс ошибки, связанной с потерей соединения, расширяющий базовый класс BaseAppError.
@@ -14,5 +14,6 @@ import ERROR_TYPE from '../error-type'
 export default class DisconnectedError extends BaseAppError {
   constructor(details = null) {
     super(ERROR_TYPE.DISCONNECTED, ERROR_TYPE.DISCONNECTED, details)
+    this.name = 'DisconnectedError'
   }
 }

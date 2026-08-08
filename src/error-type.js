@@ -1,9 +1,9 @@
 /**
  * Типы ошибок
  */
-const ERROR_TYPE = {
+const ERROR_TYPE = Object.freeze({
   /**
-   * Неизвестная ошиибка
+   * Неизвестная ошибка
    */
   UNKNOWN: 'Unknown',
   /**
@@ -42,6 +42,6 @@ const ERROR_TYPE = {
    * Ошибка логики приложения
    */
   LOGIC: 'Logic',
-}
+})
 
 export default ERROR_TYPE

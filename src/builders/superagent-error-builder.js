@@ -1,11 +1,22 @@
-import DisconnectedError from '../errors/disconnected-error'
-import BadRequestError from '../errors/bad-request-error'
-import UnauthorizedError from '../errors/unauthorized-error'
-import ForbiddenError from '../errors/forbidden-error'
-import NotFoundError from '../errors/not-found-error'
-import ConflictError from '../errors/conflict-error'
-import InternalServerError from '../errors/internal-server-error'
-import UnknownError from '../errors/unknown-error'
+import DisconnectedError from '../errors/disconnected-error.js'
+import BadRequestError from '../errors/bad-request-error.js'
+import UnauthorizedError from '../errors/unauthorized-error.js'
+import ForbiddenError from '../errors/forbidden-error.js'
+import NotFoundError from '../errors/not-found-error.js'
+import ConflictError from '../errors/conflict-error.js'
+import InternalServerError from '../errors/internal-server-error.js'
+import UnknownError from '../errors/unknown-error.js'
+
+/**
+ * Пригоден ли аргумент для разбора.
+ * @description Отсеивает null, undefined и примитивы: обращение к их
+ * свойствам либо выбрасывает TypeError, либо не имеет смысла.
+ * @param {*} error - Значение, переданное в билдер
+ * @returns {boolean} true, если значение можно разбирать
+ */
+const isParsable = error => {
+  return typeof error === 'object' && error !== null
+}
 
 /**
  * Проверка на возможную ошибку приложения.
@@ -33,17 +44,6 @@ const isMaybeError = response => {
  */
 const isDisconnect = error => {
   return !('body' in error && 'response' in error && 'statusText' in error)
-}
-
-/**
- * Получена ошибка, сформированная сервером
- * @param {*} error
- * @returns true или false
- * @description Считаем признаком получения ошибки от сервера
- * наличие свойства "response"
- */
-const hasServerError = error => {
-  return 'response' in error
 }
 
 /**
@@ -79,7 +79,7 @@ const getServerError = error => {
     case 409:
       return new ConflictError(detail)
     case 500:
-      return new InternalServerError()
+      return new InternalServerError(detail)
     default:
       return new UnknownError()
   }
@@ -88,14 +88,20 @@ const getServerError = error => {
 /**
  * Основная функция преобразования ошибок Superagent в стандартные ошибки приложения.
  * Выполняет последовательную проверку типов ошибок:
- * 1. Потенциальная неожиданная ошибка (isMaybeError)
- * 2. Потеря соединения (isDisconnect)
- * 3. Серверная ошибка (hasServerError)
- * Возвращает соответствующий класс ошибки на основе результатов проверок.
+ * 1. Пригодность аргумента для разбора
+ * 2. Потенциальная неожиданная ошибка (isMaybeError)
+ * 3. Потеря соединения (isDisconnect)
+ * Всё, что прошло эти проверки, содержит ответ сервера.
+ * Никогда не выбрасывает исключение: функция вызывается в catch-блоках,
+ * где собственное падение скрыло бы исходную ошибку.
  * @param {*} error - Исходная ошибка от Superagent
  * @returns {BaseAppError} Экземпляр одного из классов ошибок
  */
 export const fromSuperagent = error => {
+  if (!isParsable(error)) {
+    return new UnknownError()
+  }
+
   if (isMaybeError(error)) {
     return new UnknownError()
   }
@@ -104,9 +110,5 @@ export const fromSuperagent = error => {
     return new DisconnectedError()
   }
 
-  if (hasServerError(error)) {
-    return getServerError(error)
-  }
-
-  return new UnknownError()
+  return getServerError(error)
 }

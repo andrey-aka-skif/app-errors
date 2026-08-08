@@ -39,6 +39,7 @@
   ],
   "scripts": {
     "build": "vite build",
+    "verify:dist": "node scripts/verify-dist.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

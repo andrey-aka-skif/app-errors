@@ -1,5 +1,5 @@
-import BaseAppError from '../base-app-error'
-import ERROR_TYPE from '../error-type'
+import BaseAppError from '../base-app-error.js'
+import ERROR_TYPE from '../error-type.js'
 
 /**
  * Класс ошибки логики приложения, расширяющий базовый класс BaseAppError.
@@ -13,5 +13,6 @@ import ERROR_TYPE from '../error-type'
 export default class LogicError extends BaseAppError {
   constructor(message, details = null) {
     super(ERROR_TYPE.LOGIC, message, details)
+    this.name = 'LogicError'
   }
 }
