@@ -1,5 +1,5 @@
-import BaseAppError from '../base-app-error'
-import ERROR_TYPE from '../error-type'
+import BaseAppError from '../base-app-error.js'
+import ERROR_TYPE from '../error-type.js'
 
 /**
  * Класс ошибки "Неверный запрос" (Bad Request), расширяющий базовый класс BaseAppError.
@@ -14,6 +14,7 @@ import ERROR_TYPE from '../error-type'
 export default class BadRequestError extends BaseAppError {
   constructor(details = null) {
     super(ERROR_TYPE.BADREQUEST, ERROR_TYPE.BADREQUEST, details)
+    this.name = 'BadRequestError'
     this.status = 400
   }
 }

@@ -1,5 +1,5 @@
-import BaseAppError from '../base-app-error'
-import ERROR_TYPE from '../error-type'
+import BaseAppError from '../base-app-error.js'
+import ERROR_TYPE from '../error-type.js'
 
 /**
  * Класс ошибки "Доступ запрещён" (Unauthorized), расширяющий базовый класс BaseAppError.
@@ -14,6 +14,7 @@ import ERROR_TYPE from '../error-type'
 export default class UnauthorizedError extends BaseAppError {
   constructor(details = null) {
     super(ERROR_TYPE.UNAUTHORIZED, ERROR_TYPE.UNAUTHORIZED, details)
+    this.name = 'UnauthorizedError'
     this.status = 401
   }
 }

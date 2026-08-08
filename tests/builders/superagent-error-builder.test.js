@@ -55,7 +55,7 @@ describe('fromSuperagent', () => {
       }
     )
 
-    it.each(MAPPED_STATUSES.filter(([status]) => status !== 500))(
+    it.each(MAPPED_STATUSES)(
       'для статуса %i значение detail попадает в details',
       status => {
         const error = fromSuperagent(
@@ -65,20 +65,6 @@ describe('fromSuperagent', () => {
         expect(error.details).toBe('подробности')
       }
     )
-
-    // Известный дефект (#66): ветка 500 создаёт InternalServerError без
-    // аргумента, в отличие от всех соседних и от axios-билдера.
-    it.fails('для статуса 500 значение detail попадает в details', () => {
-      const error = fromSuperagent(serverError(500, { detail: 'подробности' }))
-
-      expect(error.details).toBe('подробности')
-    })
-
-    it('сейчас для статуса 500 details теряется', () => {
-      const error = fromSuperagent(serverError(500, { detail: 'подробности' }))
-
-      expect(error.details).toBeNull()
-    })
   })
 
   describe('ответ сервера с неизвестным статусом', () => {
@@ -163,17 +149,17 @@ describe('fromSuperagent', () => {
   })
 
   describe('некорректный вход', () => {
-    // Известный дефект (#66), парный к такому же в axios-билдере.
-    it.fails('null преобразуется в UnknownError', () => {
-      expect(fromSuperagent(null)).toBeInstanceOf(UnknownError)
+    it.each([
+      ['null', null],
+      ['undefined', undefined],
+      ['строка', 'что-то пошло не так'],
+      ['число', 500],
+    ])('%s преобразуется в UnknownError', (_описание, input) => {
+      expect(fromSuperagent(input)).toBeInstanceOf(UnknownError)
     })
 
-    it.fails('undefined преобразуется в UnknownError', () => {
-      expect(fromSuperagent(undefined)).toBeInstanceOf(UnknownError)
-    })
-
-    it('сейчас на null выбрасывается TypeError', () => {
-      expect(() => fromSuperagent(null)).toThrow(TypeError)
+    it('не выбрасывает исключение сам', () => {
+      expect(() => fromSuperagent(null)).not.toThrow()
     })
   })
 })

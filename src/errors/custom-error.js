@@ -1,5 +1,5 @@
-import BaseAppError from '../base-app-error'
-import ERROR_TYPE from '../error-type'
+import BaseAppError from '../base-app-error.js'
+import ERROR_TYPE from '../error-type.js'
 
 /**
  * Класс пользовательской ошибки, расширяющий базовый класс BaseAppError.
@@ -28,5 +28,6 @@ export default class CustomError extends BaseAppError {
    */
   constructor(type, message = ERROR_TYPE.CUSTOM, details = null) {
     super(type, message, details)
+    this.name = 'CustomError'
   }
 }

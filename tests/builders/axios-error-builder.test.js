@@ -162,19 +162,19 @@ describe('fromAxios', () => {
   })
 
   describe('некорректный вход', () => {
-    // Известный дефект (#66): билдер на пути обработки ошибок падает сам.
-    // Тесты написаны под ожидаемое поведение и станут зелёными после
-    // добавления гарда.
-    it.fails('null преобразуется в UnknownError', () => {
-      expect(fromAxios(null)).toBeInstanceOf(UnknownError)
+    it.each([
+      ['null', null],
+      ['undefined', undefined],
+      ['строка', 'что-то пошло не так'],
+      ['число', 500],
+    ])('%s преобразуется в UnknownError', (_описание, input) => {
+      expect(fromAxios(input)).toBeInstanceOf(UnknownError)
     })
 
-    it.fails('undefined преобразуется в UnknownError', () => {
-      expect(fromAxios(undefined)).toBeInstanceOf(UnknownError)
-    })
-
-    it('сейчас на null выбрасывается TypeError', () => {
-      expect(() => fromAxios(null)).toThrow(TypeError)
+    it('не выбрасывает исключение сам', () => {
+      // Билдер вызывается в catch-блоке: собственное падение скрыло бы
+      // исходную ошибку.
+      expect(() => fromAxios(null)).not.toThrow()
     })
   })
 })

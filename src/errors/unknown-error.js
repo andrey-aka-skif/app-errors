@@ -1,5 +1,5 @@
-import BaseAppError from '../base-app-error'
-import ERROR_TYPE from '../error-type'
+import BaseAppError from '../base-app-error.js'
+import ERROR_TYPE from '../error-type.js'
 
 /**
  * Класс ошибки "Неизвестная ошибка" (Unknown Error), расширяющий базовый класс BaseAppError.
@@ -14,5 +14,6 @@ import ERROR_TYPE from '../error-type'
 export default class UnknownError extends BaseAppError {
   constructor() {
     super(ERROR_TYPE.UNKNOWN, ERROR_TYPE.UNKNOWN, null)
+    this.name = 'UnknownError'
   }
 }

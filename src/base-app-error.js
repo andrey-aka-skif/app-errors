@@ -1,4 +1,4 @@
-import ERROR_TYPE from './error-type'
+import ERROR_TYPE from './error-type.js'
 
 const DEFAULT_TYPE = ERROR_TYPE.UNKNOWN
 const DEFAULT_MESSAGE = ''
