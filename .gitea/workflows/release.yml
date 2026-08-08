@@ -1,16 +1,24 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 
-name: Publish NPM Package Manually
+# Публикация пакета в реестр Gitea. Каноничный путь — создание Release
+# (событие release: published), тег создаётся вместе с релизом.
+# Голый git push тега НЕ публикует: релиз — преднамеренный акт с release
+# notes. Ручной перезапуск по существующему тегу — через workflow_dispatch
+# (запасной и восстановительный путь). Два входа — одна job.
+
+name: Release
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Имя тега для сборки (например, v1.2.3)'
+        description: 'Тег релиза (например, v1.2.3)'
         required: true
         type: string
       npm_tag:
-        description: 'npm dist-tag'
+        description: 'npm dist-tag (по умолчанию: replay)'
         required: false
         default: replay
         type: string
@@ -27,8 +35,9 @@ jobs:
     container:
       image: node:24-bookworm
     outputs:
-      ref: ${{ steps.set-ref.outputs.ref }}
-      version: ${{ steps.set-ref.outputs.version }}
+      ref: ${{ steps.resolve.outputs.ref }}
+      version: ${{ steps.resolve.outputs.version }}
+      npm_tag: ${{ steps.resolve.outputs.npm_tag }}
 
     steps:
       - name: 🛒 Checkout (full)
@@ -36,37 +45,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 🔍 Validate tag format
+      - name: 🔍 Resolve and validate tag
+        id: resolve
         run: |
-          TAG="${{ inputs.tag }}"
+          TAG="${{ inputs.tag || github.event.release.tag_name }}"
+          NPM_TAG="${{ inputs.npm_tag || 'latest' }}"
+
           if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "❌ Неверный формат тега: $TAG"
             echo "Ожидается: vMAJOR.MINOR.PATCH"
             exit 1
           fi
-          echo "✅ Формат тега OK: $TAG"
-        shell: bash
 
-      - name: 🔍 Validate tag exists
-        run: |
-          TAG="${{ inputs.tag }}"
           if ! git show-ref --tags --quiet "refs/tags/$TAG"; then
             echo "❌ Тег не существует: $TAG"
             exit 1
           fi
-          echo "✅ Тег существует: $TAG"
-
-      - name: 📦 Extract version and ref
-        id: set-ref
-        run: |
-          TAG="${{ inputs.tag }}"
-          VERSION="${TAG#v}"
 
           echo "ref=refs/tags/$TAG" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=${TAG#v}" >> $GITHUB_OUTPUT
+          echo "npm_tag=$NPM_TAG" >> $GITHUB_OUTPUT
 
-          echo "📌 Используемый тег: $TAG"
-          echo "📦 Version: $VERSION"
+          echo "📌 Тег: $TAG"
+          echo "📦 Версия: ${TAG#v}"
+          echo "🏷️ dist-tag: $NPM_TAG"
+        shell: bash
 
   ci:
     needs: validate
@@ -117,6 +120,6 @@ jobs:
           scope: ${{ env.NPM_SCOPE }}
 
       - name: 🚀 Publish package to Gitea Registry
-        run: npm publish --tag "${{ inputs.npm_tag }}"
+        run: npm publish --tag "${{ needs.validate.outputs.npm_tag }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
