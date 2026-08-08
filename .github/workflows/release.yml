@@ -47,7 +47,6 @@ jobs:
         id: resolve
         run: |
           TAG="${{ inputs.tag || github.event.release.tag_name }}"
-          NPM_TAG="${{ inputs.npm_tag || 'latest' }}"
 
           if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "❌ Неверный формат тега: $TAG"
@@ -58,6 +57,24 @@ jobs:
           if ! git show-ref --tags --quiet "refs/tags/$TAG"; then
             echo "❌ Тег не существует: $TAG"
             exit 1
+          fi
+
+          # dist-tag: latest достаётся только старшей версии. Патч линии
+          # сопровождения, выпущенный после новой мажорной, иначе увёл бы
+          # latest назад.
+          if [ -n "${{ inputs.npm_tag }}" ]; then
+            NPM_TAG="${{ inputs.npm_tag }}"
+          elif [ "${{ github.event.release.prerelease }}" = "true" ]; then
+            NPM_TAG='next'
+          else
+            HIGHEST=$(git tag --list 'v*' --sort=v:refname \
+              | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | tail -n 1)
+            if [ "$TAG" = "$HIGHEST" ]; then
+              NPM_TAG='latest'
+            else
+              NPM_TAG="${TAG%%.*}-lts"
+              echo "ℹ️ $TAG не старший тег (старший — $HIGHEST)"
+            fi
           fi
 
           echo "ref=refs/tags/$TAG" >> $GITHUB_OUTPUT
