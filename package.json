@@ -1,11 +1,14 @@
 {
   "name": "@andrey-aka-skif/app-errors",
-  "version": "2.0.0",
+  "version": "0.0.0",
   "description": "Классы ошибок приложения, связанные с обращением к внешнему API и внутренней логикой",
   "keywords": [
     "errors",
+    "error-handling",
+    "http",
     "api",
-    "axios"
+    "axios",
+    "superagent"
   ],
   "license": "MIT",
   "author": "@andrey-aka-skif",
@@ -18,35 +21,63 @@
     "url": "https://github.com/andrey-aka-skif/app-errors.git"
   },
   "type": "module",
-  "main": "./dist/cjs/index.cjs",
-  "module": "./dist/es/index.js",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "exports": {
-    "./error-types": "./dist/error-types.js",
-    "./logic": "./dist/logic.js",
-    "./axios": "./dist/axios.js",
-    "./superagent": "./dist/superagent.js"
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js"
+    },
+    "./error-types": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js"
+    },
+    "./logic": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js"
+    },
+    "./axios": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js"
+    },
+    "./superagent": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js"
+    }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "dev": "vite",
+    "prebuild": "prettier --check .",
     "build": "vite build",
+    "postbuild": "node scripts/verify-dist.js",
+    "verify:dist": "node scripts/verify-dist.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
-    "format": "prettier --write \"**/*.{js,jsx,json,md,html}\"",
-    "preview": "echo '⚠️  Preview not available for library mode'",
-    "test": "echo '⚠️  Not tests available yet'",
-    "test:ui": "echo '⚠️  Not tests available yet'"
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@eslint/js": "^9.22.0",
-    "eslint": "^9.39.2",
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/eslint-plugin": "^1.6.26",
+    "@vitest/ui": "^4.1.10",
+    "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-prettier": "^5.5.4",
-    "globals": "^16.0.0",
-    "jsdom": "^26.0.0",
-    "prettier": "^3.7.4",
-    "terser": "^5.44.1",
-    "vite": "^6.4.1"
+    "globals": "^17.9.0",
+    "prettier": "^3.9.6",
+    "terser": "^5.49.2",
+    "vite": "^8.2.0",
+    "vitest": "^4.1.10"
   }
 }
