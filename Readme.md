@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/github/license/andrey-aka-skif/app-errors.svg)](https://github.com/andrey-aka-skif/app-errors/blob/master/LICENSE)
 [![CI](https://github.com/andrey-aka-skif/app-errors/actions/workflows/ci.yml/badge.svg)](https://github.com/andrey-aka-skif/app-errors/actions/workflows/ci.yml)
-[![Release](https://github.com/andrey-aka-skif/app-errors/actions/workflows/release.yml/badge.svg)](https://github.com/andrey-aka-skif/app-errors/actions/workflows/release.yml)
+[![Publish](https://github.com/andrey-aka-skif/app-errors/actions/workflows/publish.yml/badge.svg)](https://github.com/andrey-aka-skif/app-errors/actions/workflows/publish.yml)
 
 Npm-пакет, предоставляющий набор типизированных классов ошибок для Node.js и браузерных приложений. Он помогает стандартизировать обработку ошибок, связанных с обращением к внешнему API, внутренней бизнес-логикой и сетевыми проблемами.
 

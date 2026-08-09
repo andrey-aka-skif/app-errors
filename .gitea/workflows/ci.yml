@@ -1,57 +1,39 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 
-name: Continuous Integration
+name: CI
 
 on:
   push:
     branches: ['**']
-  workflow_call:
-    inputs:
-      ref:
-        required: false
-        type: string
-        default: ''
-        description: 'Имя тега для сборки (например, v1.2.3), ветки или коммита. Если не указано, используется текущий ref'
 
 env:
   # Active LTS: с 28.10.2025, EOL 28.04.2028
-  NODE_VERSION: '24'
+  NODE_VERSION: '24.x'
 
 jobs:
-  run-ci:
+  build:
     runs-on: ubuntu-latest
     container:
       image: node:24-bookworm
 
     steps:
-      - name: 🛒 Checkout with param
+      - name: Checkout
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.ref || github.ref }}
 
-      - name: Validate checked-out ref
-        run: |
-          git rev-parse HEAD
-          git status --porcelain
-
-      - name: ✨ Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: 📝 Lint
+      - name: Lint
         run: npm run lint
 
-      # Сборка занимает меньше секунды, кэшировать нечего: публикация
-      # собирает пакет заново из исходников тега.
-      # Хуки prebuild и postbuild проверяют форматирование и собранный пакет.
-      - name: 🛠️ Build
-        run: npm run build
-
-      - name: 🧪 Run tests
+      - name: Test
         run: npm test
+
+      - name: Build
+        run: npm run build
