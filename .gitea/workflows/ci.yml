@@ -14,13 +14,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      # Литерал: контекст env в jobs.<job_id>.container.image недоступен,
-      # поэтому мажор дублирует NODE_VERSION и правится вместе с ним.
+      # Мажор дублирует NODE_VERSION и правится вместе с ним.
       image: node:24-bookworm
 
     steps:
-      # Версии экшенов не могут быть выражениями: ключ uses контексты не
-      # принимает.
       - name: Checkout
         uses: actions/checkout@v7
 
