@@ -1,64 +1,126 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 
-name: Publish NPM Package on New Tag
+# Публикация пакета в GitHub Packages. Версия берётся из git-тега vX.Y.Z
+# (в манифесте всегда 0.0.0).
+# Триггеры:
+#   - publish GitHub Release — каноничный путь. Голый push тега НЕ публикует:
+#     релиз это преднамеренный акт с release notes;
+#   - ручной запуск с тегом — пересборка/переиздание уже выпущенной версии.
+
+name: Publish
 
 on:
-  push:
-    tags: ['v*.*.*']
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Тег для сборки и публикации (формат vX.Y.Z)'
+        required: true
+      npm-tag:
+        description: >
+          dist-tag для ручной публикации. По умолчанию replay — паркинг-тег,
+          который НЕ сдвигает latest (нужно при пересборке/бэкфилле старой версии).
+        required: false
+        # Литерал: контексты в on.workflow_dispatch.inputs.<id>.default
+        # недоступны.
+        default: replay
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  # Active LTS: с 28.10.2025, EOL 28.04.2028
+  NODE_VERSION: '24.x'
+  REGISTRY_URL: 'https://npm.pkg.github.com'
+  NPM_SCOPE: '@andrey-aka-skif'
+  TAG_PATTERN: '^v[0-9]+\.[0-9]+\.[0-9]+$'
+  # Грубый префильтр для git tag --list, точный отбор делает TAG_PATTERN.
+  TAG_GLOB: 'v*'
+  # Суффикс dist-тега линии сопровождения: v2 + LTS_SUFFIX = v2-lts.
+  LTS_SUFFIX: '-lts'
 
 jobs:
-  ci:
-    uses: './.github/workflows/ci.yml'
-    with:
-      ref: ${{ github.ref }}
-
   publish:
-    needs: ci
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🛒 Checkout
-        uses: actions/checkout@v4
+      # fetch-depth: 0 — нужен полный список тегов: dist-tag latest достаётся
+      # только старшему из них (см. шаг «Версия и dist-tag из тега»).
+      #
+      # Версии экшенов не могут быть выражениями: ключ uses контексты не
+      # принимает.
+      - name: Checkout (по тегу события или указанному вручную)
+        uses: actions/checkout@v7
         with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
           fetch-depth: 0
 
-      - name: 📦 Extract version from tag
-        id: get-version
-        run: |
-          VERSION="${GITHUB_REF#refs/tags/v}"
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "📌 Версия из тега: ${VERSION}"
-
-      - name: 📝 Update version in package.json
-        run: |
-          npm version ${{ steps.get-version.outputs.version }} --no-git-tag-version --allow-same-version
-          echo "✅ Версия в package.json обновлена до ${{ steps.get-version.outputs.version }}"
-
-      - name: 📥 Restore build from cache
-        id: restore-cache
-        uses: actions/cache/restore@v4
+      # registry-url + scope → setup-node пишет scoped-строку @andrey-aka-skif:registry=…
+      # (не дефолтный реестр) и auth через NODE_AUTH_TOKEN. Committed .npmrc не нужен.
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
         with:
-          path: dist/
-          key: build-${{ github.sha }}-${{ hashFiles('src/**', 'package.json') }}
-          restore-keys: |
-            build-
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          registry-url: ${{ env.REGISTRY_URL }}
+          scope: ${{ env.NPM_SCOPE }}
 
-      - name: ✅ Verify build exists
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Версия и dist-tag из тега (манифест остаётся 0.0.0 в git)
+        id: release
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          INPUT_NPM_TAG: ${{ github.event.inputs.npm-tag }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
         run: |
-          if [ ! -d "dist" ] || [ -z "$(ls -A dist/)" ]; then
-            echo "❌ Каталог сборки пуст или отсутствует"
+          TAG="${INPUT_TAG:-$GITHUB_REF_NAME}"
+
+          if ! printf '%s' "$TAG" | grep -Eq "$TAG_PATTERN"; then
+            echo "Тег '$TAG' не соответствует формату vX.Y.Z" >&2
             exit 1
           fi
-          echo "✅ Сборка найдена в dist/"
 
-      - name: ✨ Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-            node-version: '20'
-            registry-url: https://npm.pkg.github.com
-            scope: '@andrey-aka-skif'
+          npm version --no-git-tag-version --allow-same-version "${TAG#v}"
 
-      - name: 🚀 Publish package to Github Registry
-        run: npm publish --tag lts_v2
+          # latest и next — фиксированный словарь npm, а не настройка проекта,
+          # поэтому остаются литералами.
+          #
+          # latest достаётся только старшей версии. Патч линии сопровождения,
+          # выпущенный после новой мажорной, иначе увёл бы latest назад.
+          if [ -n "$INPUT_NPM_TAG" ]; then
+            NPM_TAG="$INPUT_NPM_TAG"
+          elif [ "$PRERELEASE" = 'true' ]; then
+            NPM_TAG='next'
+          else
+            HIGHEST=$(git tag --list "$TAG_GLOB" --sort=v:refname \
+              | grep -E "$TAG_PATTERN" | tail -n 1)
+            if [ "$TAG" = "$HIGHEST" ]; then
+              NPM_TAG='latest'
+            else
+              NPM_TAG="${TAG%%.*}${LTS_SUFFIX}"
+              echo "$TAG не старший тег (старший — $HIGHEST)"
+            fi
+          fi
+
+          echo "npm-tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
+          echo "Тег: $TAG, версия: ${TAG#v}, dist-tag: $NPM_TAG"
+
+      - name: Build
+        run: npm run build
+
+      # Встроенный токен вместо PAT: он не истекает, не требует ручного
+      # обновления и ограничен этим репозиторием. Права даёт блок permissions.
+      - name: Publish to GitHub Packages
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm publish --tag "${{ steps.release.outputs.npm-tag }}"
