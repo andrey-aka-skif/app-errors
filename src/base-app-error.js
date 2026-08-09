@@ -8,6 +8,9 @@ const DEFAULT_DETAILS = null
  * Базовый класс для ошибок приложения, расширяющий встроенный класс Error.
  * Добавляет пользовательские свойства: тип ошибки и дополнительные детали.
  * Исходная ошибка передаётся штатным механизмом Error — options.cause.
+ * Свойство message перечислимо, поэтому текст ошибки переживает копирование
+ * перечислением: спред и JSON.stringify. Свойства cause и stack остаются
+ * неперечислимыми и в копию не попадают.
  * Класс не должен быть создан напрямую.
  *
  * @class
@@ -43,6 +46,19 @@ export default class BaseAppError extends Error {
     // undefined }) добавил бы каждой ошибке свойство cause со значением
     // undefined — видимое и в логах, и в любом сериализаторе.
     super(message, cause === undefined ? undefined : { cause })
+
+    // Error создаёт message неперечислимым, а type, details, name и status
+    // пакет присваивает обычным образом. Без выравнивания дескриптора спред
+    // и JSON.stringify уносят всё, кроме текста ошибки. Дескриптор задаётся
+    // целиком: одного флага enumerable недостаточно, при отсутствии
+    // собственного свойства такая форма создала бы message со значением
+    // undefined, недоступное для записи.
+    Object.defineProperty(this, 'message', {
+      value: this.message,
+      enumerable: true,
+      writable: true,
+      configurable: true,
+    })
 
     this.type = type
     this.details = details
