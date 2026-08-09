@@ -3,7 +3,11 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Этот проект придерживается [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Не выпущено]
+## [2.1.1] - 2026-08-09
+
+### Изменено
+
+- Год в `LICENSE` приведён к диапазону 2025-2026.
 
 ## [2.1.0] - 2026-08-09
 
