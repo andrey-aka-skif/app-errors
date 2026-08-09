@@ -10,7 +10,14 @@ export default defineConfig([
     files: ['**/*.{js,mjs}'],
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  globalIgnores([
+    '**/dist/**',
+    '**/dist-ssr/**',
+    '**/coverage/**',
+    'docs/api/**',
+    'docs/.vitepress/dist/**',
+    'docs/.vitepress/cache/**',
+  ]),
 
   {
     languageOptions: {
@@ -42,7 +49,7 @@ export default defineConfig([
 
   {
     name: 'app/node-scripts',
-    files: ['*.config.js', 'scripts/**/*.js'],
+    files: ['*.config.js', 'scripts/**/*.js', 'docs/**/*.mjs'],
     languageOptions: {
       globals: {
         ...globals.node,

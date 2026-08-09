@@ -46,6 +46,10 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
+    "docs:api": "typedoc --options docs/typedoc.config.mjs",
+    "docs:dev": "npm run docs:api && vitepress dev docs",
+    "docs:build": "npm run docs:api && vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -61,7 +65,12 @@
     "globals": "^17.9.0",
     "prettier": "^3.9.6",
     "terser": "^5.49.2",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.12.0",
+    "typedoc-vitepress-theme": "^1.1.3",
+    "typescript": "^6.0.3",
     "vite": "^8.2.0",
+    "vitepress": "^1.6.4",
     "vitest": "^4.1.10"
   }
 }
