@@ -34,6 +34,12 @@ env:
   REGISTRY_URL: 'https://npm.pkg.github.com'
   NPM_SCOPE: '@andrey-aka-skif'
   TAG_PATTERN: '^v[0-9]+\.[0-9]+\.[0-9]+$'
+  # Грубый префильтр для git tag --list, точный отбор делает TAG_PATTERN.
+  TAG_GLOB: 'v*'
+  # Суффикс dist-тега линии сопровождения: v3 + LTS_SUFFIX = v3-lts, штатный
+  # dist-тег этой ветки. latest достаётся только старшему тегу репозитория,
+  # то есть актуальной линии.
+  LTS_SUFFIX: '-lts'
 
 jobs:
   publish:
@@ -90,12 +96,12 @@ jobs:
           elif [ "$PRERELEASE" = 'true' ]; then
             NPM_TAG='next'
           else
-            HIGHEST=$(git tag --list 'v*' --sort=v:refname \
+            HIGHEST=$(git tag --list "$TAG_GLOB" --sort=v:refname \
               | grep -E "$TAG_PATTERN" | tail -n 1)
             if [ "$TAG" = "$HIGHEST" ]; then
               NPM_TAG='latest'
             else
-              NPM_TAG="${TAG%%.*}-lts"
+              NPM_TAG="${TAG%%.*}${LTS_SUFFIX}"
               echo "$TAG не старший тег (старший — $HIGHEST)"
             fi
           fi
