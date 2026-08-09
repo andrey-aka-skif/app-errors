@@ -1,58 +1,40 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 
-name: Continuous Integration
+name: CI
 
 on:
-    push:
-        branches: ['**']
-    workflow_call:
-      inputs:
-        ref:
-          required: false
-          type: string
-          default: ''
-          description: 'Имя тега для сборки (например, v1.2.3), ветки или коммита. Если не указано, используется текущий ref'
+  push:
+    branches: ['**']
 
 jobs:
-    run-ci:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-        steps:
-          - name: 🛒 Checkout with param
-            uses: actions/checkout@v4
-            with:
-              fetch-depth: 0
-              ref: ${{ inputs.ref || github.ref }}
+    strategy:
+      matrix:
+        # Литералы: контекст env в jobs.<job_id>.strategy недоступен.
+        node-version: [22.x, 24.x]
 
-          - name: Validate checked-out ref
-            run: |
-              git rev-parse HEAD
-              git status --porcelain
+    steps:
+      # Версии экшенов не могут быть выражениями: ключ uses контексты не
+      # принимает. Обновляются dependabot'ом.
+      - name: Checkout
+        uses: actions/checkout@v7
 
-          - name: ✨ Setup Node.js
-            uses: actions/setup-node@v4
-            with:
-                node-version: '20'
-                cache: 'npm'
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
 
-          - name: 📦 Install dependencies
-            run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-          - name: 📝 Lint
-            run: npm run lint
+      - name: Lint
+        run: npm run lint
 
-          - name: 🏗️ Build and cache
-            id: cache-build
-            uses: actions/cache@v4
-            with:
-              path: dist/
-              key: build-${{ github.sha }}-${{ hashFiles('src/**', 'package.json') }}
-              restore-keys: |
-                build-
+      - name: Test
+        run: npm test
 
-          - name: 🛠️ Build if cache missed
-            if: steps.cache-build.outputs.cache-hit != 'true'
-            run: npm run build
-
-          - name: 🧪 Run tests
-            run: npm test
+      - name: Build
+        run: npm run build
