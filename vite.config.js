@@ -1,36 +1,20 @@
-import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   build: {
-    rollupOptions: {
-      input: {
-        'error-types': fileURLToPath(
-          new URL('./src/errorTypes.js', import.meta.url)
-        ),
-        logic: fileURLToPath(
-          new URL('./src/logicAppError.js', import.meta.url)
-        ),
-        axios: fileURLToPath(
-          new URL('./src/axiosNetworkAppError.js', import.meta.url)
-        ),
-        superagent: fileURLToPath(
-          new URL('./src/superagentNetworkAppError.js', import.meta.url)
-        ),
-      },
-
-      preserveEntrySignatures: 'strict',
-
-      output: {
-        dir: 'dist',
-        format: 'es',
-        preserveModules: true,
-        preserveModulesRoot: 'src',
-        entryFileNames: '[name].js',
+    lib: {
+      entry: fileURLToPath(new URL('./src/index.js', import.meta.url)),
+      name: 'appErrors',
+      fileName: format => `index.${format}.js`,
+      formats: ['es', 'umd'],
+    },
+    sourcemap: true,
+    minify: 'terser',
+    terserOptions: {
+      format: {
+        comments: 'some',
       },
     },
-
-    sourcemap: false,
-    emptyOutDir: true,
   },
 })
