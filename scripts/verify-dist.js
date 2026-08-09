@@ -5,27 +5,17 @@
  * минификатор. Именно там ломаются имена классов: сборщик может превратить
  * объявление класса в присваивание анонимного выражения, и тогда имя
  * подхватывается из имени переменной, которое минификатор сокращает.
- * Проверяем то, что реально уезжает потребителю.
+ * Проверяем то, что реально уезжает потребителю, — обе сборки, ESM и UMD:
+ * terser проходит по каждой отдельно.
+ *
+ * Эталон берётся из src/index.js, а не из зашитого перечня: ручной список
+ * молча пропустил бы вновь добавленный класс.
  */
 
 import { readdirSync } from 'node:fs'
 import { fileURLToPath, URL } from 'node:url'
 
 const DIST = fileURLToPath(new URL('../dist', import.meta.url))
-
-/** Классы, для которых имя должно совпадать с именем экспорта. */
-const ERROR_CLASSES = [
-  'UnknownError',
-  'CustomError',
-  'LogicError',
-  'DisconnectedError',
-  'BadRequestError',
-  'UnauthorizedError',
-  'ForbiddenError',
-  'NotFoundError',
-  'ConflictError',
-  'InternalServerError',
-]
 
 const failures = []
 
@@ -35,62 +25,109 @@ const check = (condition, message) => {
   }
 }
 
+const report = () => {
+  if (failures.length > 0) {
+    console.error('❌ Проверка собранного пакета не пройдена:')
+    for (const failure of failures) {
+      console.error(`   - ${failure}`)
+    }
+    process.exit(1)
+  }
+}
+
 const files = readdirSync(DIST)
 check(files.includes('index.es.js'), 'В dist/ нет index.es.js')
 check(files.includes('index.umd.js'), 'В dist/ нет index.umd.js')
 
+// Без файлов проверять нечего: дальше их пришлось бы загружать.
+report()
+
+const src = await import('../src/index.js')
+
+const EXPECTED_EXPORTS = Object.keys(src).sort()
+
+// Отбор по цепочке прототипов, а не по виду имени: BaseAppError отсеивается
+// как не наследник самого себя, билдеры — как стрелочные функции без prototype.
+const ERROR_CLASSES = Object.entries(src)
+  .filter(([, value]) => value?.prototype instanceof src.BaseAppError)
+  .map(([name]) => name)
+
+const verifyBundle = (label, bundle) => {
+  check(
+    JSON.stringify(Object.keys(bundle).sort()) ===
+      JSON.stringify(EXPECTED_EXPORTS),
+    `${label}: набор экспортов разошёлся с src/index.js — ${Object.keys(bundle).sort().join(', ')}`
+  )
+
+  check(
+    JSON.stringify(bundle.ERROR_TYPE) === JSON.stringify(src.ERROR_TYPE),
+    `${label}: ERROR_TYPE разошёлся с исходником — ${JSON.stringify(bundle.ERROR_TYPE)}`
+  )
+
+  // Проверка до цикла: без BaseAppError каждый instanceof ниже дал бы
+  // TypeError вместо сообщения о причине.
+  if (typeof bundle.BaseAppError !== 'function') {
+    failures.push(
+      `${label}: экспорт BaseAppError отсутствует, классы проверить нечем`
+    )
+    return
+  }
+
+  for (const className of ERROR_CLASSES) {
+    const ErrorClass = bundle[className]
+
+    if (typeof ErrorClass !== 'function') {
+      failures.push(`${label}: экспорт ${className} отсутствует в сборке`)
+      continue
+    }
+
+    // Все классы ошибок допускают нульарный вызов.
+    const instance = new ErrorClass()
+
+    check(
+      instance.name === className,
+      `${label}/${className}: name равен "${instance.name}" вместо "${className}"`
+    )
+    // Сравнение с BaseAppError своей сборки: у ESM и UMD это разные классы.
+    check(
+      instance instanceof bundle.BaseAppError,
+      `${label}/${className}: экземпляр не является BaseAppError`
+    )
+  }
+
+  // Билдеры должны переживать сборку целиком, а не только по частям.
+  // Логика их ветвления проверена юнит-тестами по src/.
+  check(
+    bundle.fromAxios({
+      isAxiosError: true,
+      response: { status: 404, data: { detail: 'нет такого' } },
+    }) instanceof bundle.NotFoundError,
+    `${label}: fromAxios не вернул NotFoundError для статуса 404`
+  )
+  check(
+    bundle.fromSuperagent(null) instanceof bundle.UnknownError,
+    `${label}: fromSuperagent не устоял на аргументе null`
+  )
+}
+
 // Именно href: динамический import на Windows не принимает путь вида "D:\...".
-const pkg = await import(new URL('../dist/index.es.js', import.meta.url).href)
+verifyBundle(
+  'ESM',
+  await import(new URL('../dist/index.es.js', import.meta.url).href)
+)
 
-for (const className of ERROR_CLASSES) {
-  const ErrorClass = pkg[className]
+// UMD-сборка не экспортирует ничего по-модульному: при загрузке она кладёт
+// экспорты в globalThis под именем из build.lib.name.
+await import(new URL('../dist/index.umd.js', import.meta.url).href)
 
-  if (!ErrorClass) {
-    failures.push(`Экспорт ${className} отсутствует в сборке`)
-    continue
-  }
-
-  const instance = new ErrorClass()
-
-  check(
-    instance.name === className,
-    `${className}: name равен "${instance.name}" вместо "${className}"`
-  )
-  check(
-    instance instanceof pkg.BaseAppError,
-    `${className}: экземпляр не является BaseAppError`
-  )
+if (globalThis.appErrors) {
+  verifyBundle('UMD', globalThis.appErrors)
+} else {
+  failures.push('UMD-сборка не завела globalThis.appErrors')
 }
 
-// Билдеры должны переживать сборку целиком, а не только по частям.
-const notFound = pkg.fromAxios({
-  isAxiosError: true,
-  response: { status: 404, data: { detail: 'нет такого' } },
-})
-check(
-  notFound instanceof pkg.NotFoundError,
-  'fromAxios не вернул NotFoundError для статуса 404'
-)
-check(
-  notFound.details === 'нет такого',
-  `fromAxios потерял details: ${JSON.stringify(notFound.details)}`
-)
+report()
 
-check(
-  pkg.fromAxios(null) instanceof pkg.UnknownError,
-  'fromAxios не устоял на аргументе null'
+console.log(
+  '✅ Собранный пакет проверен: обе сборки, имена классов и билдеры на месте'
 )
-check(
-  pkg.fromSuperagent(null) instanceof pkg.UnknownError,
-  'fromSuperagent не устоял на аргументе null'
-)
-
-if (failures.length > 0) {
-  console.error('❌ Проверка собранного пакета не пройдена:')
-  for (const failure of failures) {
-    console.error(`   - ${failure}`)
-  }
-  process.exit(1)
-}
-
-console.log('✅ Собранный пакет проверен: имена классов и билдеры на месте')
