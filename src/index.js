@@ -2,7 +2,6 @@ import ERROR_TYPE from './error-type.js'
 import BaseAppError from './base-app-error.js'
 import HttpError from './errors/http-error.js'
 import UnknownError from './errors/unknown-error.js'
-import CustomError from './errors/custom-error.js'
 import LogicError from './errors/logic-error.js'
 import DisconnectedError from './errors/disconnected-error.js'
 import TimeoutError from './errors/timeout-error.js'
@@ -23,7 +22,6 @@ export {
   BaseAppError,
   HttpError,
   UnknownError,
-  CustomError,
   LogicError,
   DisconnectedError,
   TimeoutError,
