@@ -3,6 +3,14 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Этот проект придерживается [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.2] - 2026-08-09
+
+### Изменено
+
+- Год в `LICENSE` приведён к диапазону 2025-2026.
+- Readme: в шапке проговорен статус линии, установка показана через dist-тег
+  `v3-lts`. Без тега `npm install` ставит актуальную линию 4.x.
+
 ## [3.2.1] - 2026-08-09
 
 Выпуск линии сопровождения: код пакета не изменился, правки затрагивают
@@ -141,6 +149,7 @@ _Версия не помечена тегом, ссылки на сравнен
   - `AppErrorViaSuperagent` (аналогично).
 - Первоначальная документация.
 
+[3.2.2]: https://github.com/andrey-aka-skif/app-errors/compare/v3.2.1...v3.2.2
 [3.2.1]: https://github.com/andrey-aka-skif/app-errors/compare/v3.2.0...v3.2.1
 [3.2.0]: https://github.com/andrey-aka-skif/app-errors/compare/v3.1.6...v3.2.0
 [3.1.6]: https://github.com/andrey-aka-skif/app-errors/compare/v3.1.3...v3.1.6
