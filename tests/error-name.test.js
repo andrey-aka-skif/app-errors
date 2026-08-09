@@ -35,10 +35,6 @@ describe('name у классов ошибок', () => {
     expect(error.name).toBe(className)
   })
 
-  it('CustomError задаёт собственное имя', () => {
-    expect(new pkg.CustomError('TEST_TYPE').name).toBe('CustomError')
-  })
-
   it('LogicError задаёт собственное имя', () => {
     expect(new pkg.LogicError('сообщение').name).toBe('LogicError')
   })
@@ -54,7 +50,7 @@ describe('name у классов ошибок', () => {
     // Фильтр по PascalCase, а не по endsWith('Error'): под простую проверку
     // окончания попала бы и функция вроде statusToError, если её однажды
     // выведут в публичный экспорт.
-    const covered = new Set([...NULLARY_CLASSES, 'CustomError', 'LogicError'])
+    const covered = new Set([...NULLARY_CLASSES, 'LogicError'])
     const exported = Object.keys(pkg).filter(
       key => /^[A-Z][A-Za-z]*Error$/.test(key) && key !== 'BaseAppError'
     )

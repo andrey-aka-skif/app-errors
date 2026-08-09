@@ -76,16 +76,10 @@ for (const className of NULLARY_CLASSES) {
   checkInstance(className, new ErrorClass())
 }
 
-// Классы с обязательными аргументами проверяются отдельно: вызов без
-// аргументов у них выбрасывает TypeError.
-checkInstance('CustomError', new pkg.CustomError('SMOKE_TYPE'))
+// Класс с обязательным аргументом проверяется отдельно: вызов без аргументов
+// у него выбрасывает TypeError.
 checkInstance('LogicError', new pkg.LogicError('дымовая проверка'))
 
-checkThrows(
-  () => new pkg.CustomError(),
-  TypeError,
-  'CustomError без типа не выбросил TypeError'
-)
 checkThrows(
   () => new pkg.LogicError(),
   TypeError,
