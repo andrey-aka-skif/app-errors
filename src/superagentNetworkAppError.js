@@ -1,5 +1,5 @@
-import { ErrorTypes } from './errorTypes'
-import { AppError } from './AppError'
+import { ErrorTypes } from './errorTypes.js'
+import { AppError } from './AppError.js'
 
 /**
  * Объект ошибки приложения, представляющий ошибки,
@@ -19,16 +19,30 @@ export class SuperagentNetworkAppError extends AppError {
    * @param {*} error
    */
   parse(error) {
-    if (this.isMaybeAppError(error)) {
+    if (!this.isObjectLike(error)) {
+      this.message = 'Неизвестная ошибка'
+    } else if (this.isMaybeAppError(error)) {
       this.message = 'Ошибка при разборе ответа сервера'
     } else if (this.isDisconnect(error)) {
       this.type = ErrorTypes.DISCONNECTED
       this.message = 'Сервер недоступен'
-    } else if (this.hasServerError(error)) {
-      this.mapResponse(error.response)
     } else {
-      this.message = 'Неизвестная ошибка'
+      // Отдельная проверка на наличие "response" не нужна: после isDisconnect
+      // это свойство заведомо есть.
+      this.mapResponse(error.response)
     }
+  }
+
+  /**
+   * Аргумент пригоден для проверок оператором "in"
+   * @param {*} error
+   * @returns true или false
+   * @description Класс вызывается из catch-блоков, куда может прилететь что
+   * угодно, в том числе строка или число. Оператор "in" на примитиве бросает
+   * TypeError, и собственное падение разбора скрыло бы исходную ошибку.
+   */
+  isObjectLike(error) {
+    return (typeof error === 'object' || typeof error === 'function') && !!error
   }
 
   /**
@@ -56,17 +70,6 @@ export class SuperagentNetworkAppError extends AppError {
    */
   isDisconnect(error) {
     return !('body' in error && 'response' in error && 'statusText' in error)
-  }
-
-  /**
-   * Получена ошибка, сформированная сервером
-   * @param {*} error
-   * @returns true или false
-   * @description Считаем признаком получения ошибки от сервера
-   * наличие свойства "response"
-   */
-  hasServerError(error) {
-    return 'response' in error
   }
 
   /**

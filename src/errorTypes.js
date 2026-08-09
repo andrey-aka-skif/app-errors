@@ -1,7 +1,7 @@
 /**
  * Типы ошибок
  */
-export const ErrorTypes = {
+export const ErrorTypes = Object.freeze({
   /**
    * Неизвестная ошиибка
    */
@@ -38,4 +38,4 @@ export const ErrorTypes = {
    * Ошибка логики приложения
    */
   LOGIC: 'Logic',
-}
+})
