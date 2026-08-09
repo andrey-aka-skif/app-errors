@@ -1,4 +1,4 @@
-import { ErrorTypes } from './errorTypes'
+import { ErrorTypes } from './errorTypes.js'
 
 /**
  * Базовый объект ошибки приложения
