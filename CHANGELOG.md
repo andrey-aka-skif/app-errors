@@ -3,7 +3,21 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Этот проект придерживается [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Не выпущено]
+## [3.2.1] - 2026-08-09
+
+Выпуск линии сопровождения: код пакета не изменился, правки затрагивают
+только публикацию и проверку сборки.
+
+### Изменено
+
+- Dist-тег при публикации определяется сравнением тега релиза со старшим
+  тегом репозитория: старший идёт в `latest`, патч линии сопровождения — в
+  тег вида `v3-lts`, предрелиз — в `next`. Раньше `latest` был зашит жёстко,
+  и выпуск патча 3.x после 4.0.0 увёл бы `latest` на тройку.
+- Воркфлоу публикации переименован из `release.yml` в `publish.yml`, файлы
+  для GitHub и Gitea приведены к общему виду.
+- Дымовая проверка `verify:dist` гоняет обе сборки — ES и UMD, а не только
+  ES.
 
 ## [3.2.0] - 2026-08-08
 
@@ -127,7 +141,7 @@ _Версия не помечена тегом, ссылки на сравнен
   - `AppErrorViaSuperagent` (аналогично).
 - Первоначальная документация.
 
-[Не выпущено]: https://github.com/andrey-aka-skif/app-errors/compare/v3.2.0...HEAD
+[3.2.1]: https://github.com/andrey-aka-skif/app-errors/compare/v3.2.0...v3.2.1
 [3.2.0]: https://github.com/andrey-aka-skif/app-errors/compare/v3.1.6...v3.2.0
 [3.1.6]: https://github.com/andrey-aka-skif/app-errors/compare/v3.1.3...v3.1.6
 [3.1.3]: https://github.com/andrey-aka-skif/app-errors/compare/v3.1.0...v3.1.3
