@@ -15,10 +15,6 @@ const ERROR_TYPE = Object.freeze({
    */
   UNKNOWN: 'Unknown',
   /**
-   * Пользовательская ошибка
-   */
-  CUSTOM: 'Custom',
-  /**
    * Ошибка логики приложения
    */
   LOGIC: 'Logic',

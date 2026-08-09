@@ -85,20 +85,16 @@ console.error(appError.cause) // исходная ошибка Axios
 Собственные ошибки приложения создаются напрямую:
 
 ```js
-import {
-  LogicError,
-  CustomError,
-  ERROR_TYPE,
-} from '@andrey-aka-skif/app-errors'
+import { LogicError, ERROR_TYPE } from '@andrey-aka-skif/app-errors'
 
 if (order.total < 0) {
   throw new LogicError('Сумма заказа не может быть отрицательной', {
     orderId: order.id,
   })
 }
-
-throw new CustomError('PERMISSION_DENIED', { requiredRole: 'admin' })
 ```
+
+Тип у `LogicError` зашит — это всегда `ERROR_TYPE.LOGIC`. Собственная классификация прикладных ошибок, если она нужна, живёт в `details`: пакет туда не заглядывает и формы не требует.
 
 Для ветвления в коде используется `instanceof`, для сериализации и сравнения — поле `type`:
 
@@ -118,7 +114,6 @@ if (appError.type === ERROR_TYPE.NOT_FOUND) {
 Error
 └─ BaseAppError                       абстрактный, прямое создание запрещено
    ├─ UnknownError
-   ├─ CustomError
    ├─ LogicError
    ├─ DisconnectedError
    ├─ TimeoutError
@@ -169,10 +164,9 @@ Error
 - `CanceledError` — запрос отменён вызывающей стороной.
 - `UnknownError` — тип ошибки определить не удалось.
 
-Особые сигнатуры:
+Особая сигнатура:
 
-- `CustomError(type, details = null, { message, cause } = {})` — ошибка с произвольным типом. Параметр `type` обязателен: пустое значение или не строка дают `TypeError`.
-- `LogicError(message, details = null, { cause } = {})` — ошибка логики приложения. Сообщение обязательно и передаётся первым позиционным аргументом: осмысленный текст здесь может задать только вызывающая сторона. Пустое значение или не строка дают `TypeError`.
+- `LogicError(message, details = null, { cause } = {})` — нарушенное прикладное правило или инвариант. Единственный класс, который не порождают билдеры: его создаёт само приложение там, где правило проверено. Сообщение обязательно и передаётся первым позиционным аргументом — осмысленный текст здесь может задать только вызывающая сторона; пустое значение или не строка дают `TypeError`.
 
 ### Типы ошибок
 
@@ -181,7 +175,6 @@ Error
 ```js
 const ERROR_TYPE = {
   UNKNOWN: 'Unknown',
-  CUSTOM: 'Custom',
   LOGIC: 'Logic',
   DISCONNECTED: 'Disconnected',
   TIMEOUT: 'Timeout',
@@ -240,9 +233,9 @@ appError.message // 'Bad Gateway'
 
 **Таймаут и отмена выделены в отдельные классы.** Раньше таймаут был неотличим от обрыва связи, а отмена запроса уходила в `DisconnectedError` или `UnknownError`. Теперь это `TimeoutError` и `CanceledError` — обе наследуются от `BaseAppError`, но не от `HttpError`.
 
-**Сообщение `CustomError` переехало в опции.** Было `new CustomError(type, message, details)`, стало `new CustomError(type, details, { message })`.
+**Класс `CustomError` удалён вместе с токеном `ERROR_TYPE.CUSTOM`.** Он был единственным местом, где в `type` попадала произвольная строка, и из-за него перечисление не было исчерпывающим для того, кто ошибку читает. Прикладную ошибку закрывает `LogicError`: `new CustomError('PERMISSION_DENIED', { requiredRole: 'admin' })` становится `new LogicError('Недостаточно прав', { requiredRole: 'admin' })`. Первый аргумент `CustomError` был токеном приложения, а не пакета; если он нужен для ветвления, ему место в `details`, в поле, которое приложение назовёт само.
 
-**Обязательные параметры теперь проверяются.** `CustomError` без типа и `LogicError` без сообщения выбрасывают `TypeError` вместо создания ошибки с пустыми полями.
+**Обязательные параметры теперь проверяются.** `LogicError` без сообщения выбрасывает `TypeError` вместо создания ошибки с пустыми полями.
 
 **Кастомное сообщение доступно у любого класса** — вторым параметром-опцией: `new NotFoundError(details, { message: 'Заказ не найден' })`. Тип при этом не меняется.
 

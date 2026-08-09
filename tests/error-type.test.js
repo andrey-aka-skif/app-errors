@@ -27,7 +27,6 @@ describe('ERROR_TYPE', () => {
     // проверки и стерегут формат от случайной правки.
     it.each([
       ['UNKNOWN', 'Unknown'],
-      ['CUSTOM', 'Custom'],
       ['LOGIC', 'Logic'],
       ['DISCONNECTED', 'Disconnected'],
       ['TIMEOUT', 'Timeout'],
@@ -46,7 +45,7 @@ describe('ERROR_TYPE', () => {
     })
 
     it('не содержит ключей сверх перечисленных', () => {
-      expect(Object.keys(ERROR_TYPE)).toHaveLength(15)
+      expect(Object.keys(ERROR_TYPE)).toHaveLength(14)
     })
   })
 })
