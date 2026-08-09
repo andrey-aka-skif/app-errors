@@ -13,6 +13,11 @@ dist-ssr
 coverage
 *.local
 
+# Сгенерированное документацией
+docs/api
+docs/.vitepress/dist
+docs/.vitepress/cache
+
 # Локальные переменные окружения
 .env
 .env.*

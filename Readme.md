@@ -3,6 +3,7 @@
 [![License](https://img.shields.io/github/license/andrey-aka-skif/app-errors.svg)](https://github.com/andrey-aka-skif/app-errors/blob/master/LICENSE)
 [![CI](https://github.com/andrey-aka-skif/app-errors/actions/workflows/ci.yml/badge.svg)](https://github.com/andrey-aka-skif/app-errors/actions/workflows/ci.yml)
 [![Publish](https://github.com/andrey-aka-skif/app-errors/actions/workflows/publish.yml/badge.svg)](https://github.com/andrey-aka-skif/app-errors/actions/workflows/publish.yml)
+[![Docs](https://github.com/andrey-aka-skif/app-errors/actions/workflows/docs.yml/badge.svg)](https://github.com/andrey-aka-skif/app-errors/actions/workflows/docs.yml)
 
 Npm-пакет, предоставляющий набор типизированных классов ошибок для Node.js и браузерных приложений. Он помогает стандартизировать обработку ошибок, связанных с обращением к внешнему API, внутренней бизнес-логикой и сетевыми проблемами.
 
@@ -22,6 +23,30 @@ npm install @andrey-aka-skif/app-errors
 ```
 
 > Поле `version` в `package.json` репозитория всегда равно `0.0.0` — это заглушка, а не ошибка. Реальную версию проставляет CI при публикации, беря её из git-тега вида `v1.2.3`. В опубликованном пакете версия корректная.
+
+## Просмотр документации
+
+Справочник API создаётся [TypeDoc](https://typedoc.org/) из JSDoc-комментариев в `src/`, сайт собирает [VitePress](https://vitepress.dev/). Собранная документация расположена на сервисе [github.io](https://andrey-aka-skif.github.io/app-errors/).
+
+Для просмотра локальной документации использовать команды:
+
+```shell
+npm ci
+```
+
+```shell
+npm run docs:dev
+```
+
+Команда поднимает сервер с горячей перезагрузкой. Собрать сайт целиком и посмотреть результат сборки:
+
+```shell
+npm run docs:build
+```
+
+```shell
+npm run docs:preview
+```
 
 ## Быстрый старт
 
@@ -260,4 +285,5 @@ appError.message // 'Bad Gateway'
 
 ## Ссылки
 
-- [История версий](CHANGELOG.md)
+- [Документация](https://andrey-aka-skif.github.io/app-errors/)
+- [История версий](https://github.com/andrey-aka-skif/app-errors/blob/master/CHANGELOG.md)
