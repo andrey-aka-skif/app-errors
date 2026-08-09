@@ -4,13 +4,30 @@
 [![CI](https://github.com/andrey-aka-skif/app-errors/actions/workflows/ci.yml/badge.svg)](https://github.com/andrey-aka-skif/app-errors/actions/workflows/ci.yml)
 [![Publish](https://github.com/andrey-aka-skif/app-errors/actions/workflows/publish.yml/badge.svg)](https://github.com/andrey-aka-skif/app-errors/actions/workflows/publish.yml)
 
+> [!NOTE]
+> **Ветка `release/v3` — линия сопровождения.** Актуальная линия — 4.x
+> в ветке `master`, и для новых проектов следует брать её.
+>
+> Линия 3.x развития не получает: новая функциональность в неё не вносится,
+> принимаются исправления. **Версии обратно не совместимы.**
+
 Npm-пакет, предоставляющий набор типизированных классов ошибок для Node.js и браузерных приложений. Он помогает стандартизировать обработку ошибок, связанных с обращением к внешнему API, внутренней бизнес-логикой и сетевыми проблемами.
 
 ## Установка
 
 ```shell
-npm install @andrey-aka-skif/app-errors
+npm install @andrey-aka-skif/app-errors@v3-lts
 ```
+
+`v3-lts` — dist-тег линии сопровождения. Он всегда указывает на последний
+выпуск 3.x и не сдвигает `latest`, который принадлежит старшей версии пакета.
+Годится и обычный диапазон:
+
+```shell
+npm install @andrey-aka-skif/app-errors@^3
+```
+
+Без тега команда поставит актуальную линию 4.x, несовместимую с 3.x.
 
 ## Быстрый старт
 
