@@ -1,5 +1,5 @@
-import { ErrorTypes } from './errorTypes'
-import { AppError } from './AppError'
+import { ErrorTypes } from './errorTypes.js'
+import { AppError } from './AppError.js'
 
 /**
  * Объект ошибки приложения, представляющий ошибки,
