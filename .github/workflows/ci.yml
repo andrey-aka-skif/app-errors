@@ -12,12 +12,9 @@ jobs:
 
     strategy:
       matrix:
-        # Литералы: контекст env в jobs.<job_id>.strategy недоступен.
         node-version: [22.x, 24.x]
 
     steps:
-      # Версии экшенов не могут быть выражениями: ключ uses контексты не
-      # принимает. Обновляются dependabot'ом.
       - name: Checkout
         uses: actions/checkout@v7
 

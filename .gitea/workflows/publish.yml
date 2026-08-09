@@ -22,8 +22,6 @@ on:
           dist-tag для ручной публикации. По умолчанию replay — паркинг-тег,
           который НЕ сдвигает latest (нужно при пересборке/бэкфилле старой версии).
         required: false
-        # Литерал: контексты в on.workflow_dispatch.inputs.<id>.default
-        # недоступны.
         default: replay
 
 permissions:
@@ -38,23 +36,21 @@ env:
   TAG_PATTERN: '^v[0-9]+\.[0-9]+\.[0-9]+$'
   # Грубый префильтр для git tag --list, точный отбор делает TAG_PATTERN.
   TAG_GLOB: 'v*'
-  # Суффикс dist-тега линии сопровождения: v2 + LTS_SUFFIX = v2-lts.
+  # Суффикс dist-тега линии сопровождения: v2 + LTS_SUFFIX = v2-lts, штатный
+  # dist-тег этой ветки. latest достаётся только старшему тегу репозитория,
+  # то есть актуальной линии.
   LTS_SUFFIX: '-lts'
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     container:
-      # Литерал: контекст env в jobs.<job_id>.container.image недоступен,
-      # поэтому мажор дублирует NODE_VERSION и правится вместе с ним.
+      # Мажор дублирует NODE_VERSION и правится вместе с ним.
       image: node:24-bookworm
 
     steps:
       # fetch-depth: 0 — нужен полный список тегов: dist-tag latest достаётся
       # только старшему из них (см. шаг «Версия и dist-tag из тега»).
-      #
-      # Версии экшенов не могут быть выражениями: ключ uses контексты не
-      # принимает.
       - name: Checkout (по тегу события или указанному вручную)
         uses: actions/checkout@v7
         with:
@@ -96,9 +92,6 @@ jobs:
 
           npm version --no-git-tag-version --allow-same-version "${TAG#v}"
 
-          # latest и next — фиксированный словарь npm, а не настройка проекта,
-          # поэтому остаются литералами.
-          #
           # latest достаётся только старшей версии. Патч линии сопровождения,
           # выпущенный после новой мажорной, иначе увёл бы latest назад.
           if [ -n "$INPUT_NPM_TAG" ]; then
