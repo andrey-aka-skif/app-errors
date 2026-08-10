@@ -120,5 +120,5 @@ jobs:
       # прямо предписывает обходиться персональным токеном.
       - name: Publish to Gitea Registry
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GT_PACKAGES_TOKEN }}
         run: npm publish --tag "${{ steps.release.outputs.npm-tag }}"
