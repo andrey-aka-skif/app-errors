@@ -12,10 +12,9 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    container:
-      # Мажор дублирует NODE_VERSION и правится вместе с ним.
-      image: node:24-bookworm
+    # Метку раннер отображает на образ node:24-bookworm. Мажор дублирует
+    # NODE_VERSION и правится вместе с ним.
+    runs-on: node-24
 
     steps:
       - name: Checkout
