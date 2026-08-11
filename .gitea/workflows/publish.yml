@@ -23,14 +23,6 @@ env:
   NODE_VERSION: '24.x'
   REGISTRY_URL: 'https://192.168.100.252:3000/api/packages/usov-andrey/npm/'
   NPM_SCOPE: '@andrey-aka-skif'
-  TAG_PATTERN: '^v[0-9]+\.[0-9]+\.[0-9]+$'
-  # Грубый префильтр для git tag --list, точный отбор делает TAG_PATTERN.
-  TAG_GLOB: 'v*'
-  # Префикс dist-тега линии сопровождения: LTS_PREFIX + v3 = lts-v3. Для
-  # актуальной линии путь побочный, её штатный dist-тег latest.
-  # Префикс, а не суффикс: v3-lts реестр читает как версию 3.0.0-lts и
-  # отвергает (issue #127).
-  LTS_PREFIX: 'lts-'
 
 jobs:
   publish:
@@ -67,44 +59,13 @@ jobs:
       - name: Test
         run: npm test
 
+      # Шаг общий с зеркалом на GitHub, см. .ci/actions/prepare-npm-release.
       - name: Версия и dist-tag из тега (манифест остаётся 0.0.0 в git)
         id: release
-        env:
-          PRERELEASE: ${{ github.event.release.prerelease }}
-        run: |
-          TAG="$GITHUB_REF_NAME"
-
-          if ! printf '%s' "$TAG" | grep -Eq "$TAG_PATTERN"; then
-            echo "Тег '$TAG' не соответствует формату vX.Y.Z" >&2
-            exit 1
-          fi
-
-          npm version --no-git-tag-version --allow-same-version "${TAG#v}"
-
-          # latest достаётся только старшей версии. Патч линии сопровождения,
-          # выпущенный после новой мажорной, иначе увёл бы latest назад.
-          if [ "$PRERELEASE" = 'true' ]; then
-            NPM_TAG='next'
-          else
-            HIGHEST=$(git tag --list "$TAG_GLOB" --sort=v:refname \
-              | grep -E "$TAG_PATTERN" | tail -n 1)
-            if [ "$TAG" = "$HIGHEST" ]; then
-              NPM_TAG='latest'
-            else
-              NPM_TAG="${LTS_PREFIX}${TAG%%.*}"
-              echo "$TAG не старший тег (старший — $HIGHEST)"
-            fi
-          fi
-
-          # Имя, читаемое как версия, реестр отвергает уже приняв tarball:
-          # пакет опубликован, прогон красный. Ловим до публикации.
-          if printf '%s' "$NPM_TAG" | grep -Eq '^v?[0-9]'; then
-            echo "dist-tag '$NPM_TAG' начинается как версия — реестр отвергнет его" >&2
-            exit 1
-          fi
-
-          echo "npm-tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
-          echo "Тег: $TAG, версия: ${TAG#v}, dist-tag: $NPM_TAG"
+        uses: ./.ci/actions/prepare-npm-release
+        with:
+          tag: ${{ github.ref_name }}
+          prerelease: ${{ github.event.release.prerelease }}
 
       - name: Build
         run: npm run build
