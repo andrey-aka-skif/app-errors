@@ -27,10 +27,6 @@ npm install @andrey-aka-skif/app-errors@lts-v2
 npm install @andrey-aka-skif/app-errors@^2
 ```
 
-Прежние имена этого тега больше не обновляются и остались висеть на старых
-версиях: `lts_v2` — на 2.0.5, `v2-lts` — на последнем выпуске до
-переименования.
-
 ## Быстрый старт
 
 ```js
