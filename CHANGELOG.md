@@ -3,6 +3,16 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Этот проект придерживается [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.3] - 2026-08-12
+
+Код пакета не изменился с версии 4.0.2. Выпуск обновляет сопровождение:
+инструменты сборки документации и настройку публикации.
+
+### Изменено
+
+- Движок сайта документации обновлён до VitePress 2: прежняя версия была
+  прибита к закрытой линии Vite 5.
+
 ## [4.0.2] - 2026-08-11
 
 ### Исправлено
@@ -222,6 +232,7 @@ _Версия не помечена тегом, ссылки на сравнен
   - `AppErrorViaSuperagent` (аналогично).
 - Первоначальная документация.
 
+[4.0.3]: https://github.com/andrey-aka-skif/app-errors/compare/v4.0.2...v4.0.3
 [4.0.2]: https://github.com/andrey-aka-skif/app-errors/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/andrey-aka-skif/app-errors/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/andrey-aka-skif/app-errors/compare/v3.2.1...v4.0.0
