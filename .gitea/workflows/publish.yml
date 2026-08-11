@@ -19,14 +19,13 @@ permissions:
   packages: write
 
 env:
-  # Active LTS: с 28.10.2025, EOL 28.04.2028
-  NODE_VERSION: '24.x'
   REGISTRY_URL: 'https://192.168.100.252:3000/api/packages/usov-andrey/npm/'
   NPM_SCOPE: '@andrey-aka-skif'
 
 jobs:
   publish:
     # Метку node-24 раннер отображает на образ node:24-bookworm.
+    # Active LTS: с 28.10.2025, EOL 28.04.2028.
     runs-on: node-24
 
     steps:
@@ -43,7 +42,6 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: ${{ env.NODE_VERSION }}
           cache: npm
           registry-url: ${{ env.REGISTRY_URL }}
           scope: ${{ env.NPM_SCOPE }}
