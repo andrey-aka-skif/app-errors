@@ -2,27 +2,17 @@
 
 # Публикация пакета в реестр Gitea. Версия берётся из git-тега vX.Y.Z
 # (в манифесте всегда 0.0.0).
-# Триггеры:
-#   - publish Release — каноничный путь. Голый push тега НЕ публикует:
-#     релиз это преднамеренный акт с release notes;
-#   - ручной запуск с тегом — пересборка/переиздание уже выпущенной версии.
+# Единственный триггер — publish Release: релиз это преднамеренный акт с release
+# notes, голый push тега НЕ публикует. Зеркало тянет с GitHub только рефы, релиз
+# в Gitea создаётся отдельно. Повторный прогон делается кнопкой Re-run, добор
+# невыпущенного тега — созданием релиза; переиздать уже выпущенную версию
+# нельзя, реестр не даёт перезаписать name@version.
 
 name: Publish
 
 on:
   release:
     types: [published]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Тег для сборки и публикации (формат vX.Y.Z)'
-        required: true
-      npm-tag:
-        description: >
-          dist-tag для ручной публикации. По умолчанию replay — паркинг-тег,
-          который НЕ сдвигает latest (нужно при пересборке/бэкфилле старой версии).
-        required: false
-        default: replay
 
 permissions:
   contents: read
@@ -36,10 +26,12 @@ env:
   TAG_PATTERN: '^v[0-9]+\.[0-9]+\.[0-9]+$'
   # Грубый префильтр для git tag --list, точный отбор делает TAG_PATTERN.
   TAG_GLOB: 'v*'
-  # Суффикс dist-тега линии сопровождения: v2 + LTS_SUFFIX = v2-lts, штатный
+  # Префикс dist-тега линии сопровождения: LTS_PREFIX + v2 = lts-v2, штатный
   # dist-тег этой ветки. latest достаётся только старшему тегу репозитория,
   # то есть актуальной линии.
-  LTS_SUFFIX: '-lts'
+  # Префикс, а не суффикс: v2-lts реестр читает как версию 2.0.0-lts и
+  # отвергает (issue #127).
+  LTS_PREFIX: 'lts-'
 
 jobs:
   publish:
@@ -51,10 +43,10 @@ jobs:
     steps:
       # fetch-depth: 0 — нужен полный список тегов: dist-tag latest достаётся
       # только старшему из них (см. шаг «Версия и dist-tag из тега»).
-      - name: Checkout (по тегу события или указанному вручную)
+      - name: Checkout по тегу релиза
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.inputs.tag || github.ref }}
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
       # registry-url + scope → setup-node пишет scoped-строку @andrey-aka-skif:registry=…
@@ -79,11 +71,9 @@ jobs:
       - name: Версия и dist-tag из тега (манифест остаётся 0.0.0 в git)
         id: release
         env:
-          INPUT_TAG: ${{ github.event.inputs.tag }}
-          INPUT_NPM_TAG: ${{ github.event.inputs.npm-tag }}
           PRERELEASE: ${{ github.event.release.prerelease }}
         run: |
-          TAG="${INPUT_TAG:-$GITHUB_REF_NAME}"
+          TAG="$GITHUB_REF_NAME"
 
           if ! printf '%s' "$TAG" | grep -Eq "$TAG_PATTERN"; then
             echo "Тег '$TAG' не соответствует формату vX.Y.Z" >&2
@@ -94,9 +84,7 @@ jobs:
 
           # latest достаётся только старшей версии. Патч линии сопровождения,
           # выпущенный после новой мажорной, иначе увёл бы latest назад.
-          if [ -n "$INPUT_NPM_TAG" ]; then
-            NPM_TAG="$INPUT_NPM_TAG"
-          elif [ "$PRERELEASE" = 'true' ]; then
+          if [ "$PRERELEASE" = 'true' ]; then
             NPM_TAG='next'
           else
             HIGHEST=$(git tag --list "$TAG_GLOB" --sort=v:refname \
@@ -104,9 +92,16 @@ jobs:
             if [ "$TAG" = "$HIGHEST" ]; then
               NPM_TAG='latest'
             else
-              NPM_TAG="${TAG%%.*}${LTS_SUFFIX}"
+              NPM_TAG="${LTS_PREFIX}${TAG%%.*}"
               echo "$TAG не старший тег (старший — $HIGHEST)"
             fi
+          fi
+
+          # Имя, читаемое как версия, реестр отвергает уже приняв tarball:
+          # пакет опубликован, прогон красный. Ловим до публикации.
+          if printf '%s' "$NPM_TAG" | grep -Eq '^v?[0-9]'; then
+            echo "dist-tag '$NPM_TAG' начинается как версия — реестр отвергнет его" >&2
+            exit 1
           fi
 
           echo "npm-tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
