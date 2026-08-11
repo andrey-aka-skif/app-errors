@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // Сайдбар раздела API генерируется TypeDoc перед запуском VitePress
 // (скрипты docs:dev и docs:build вызывают docs:api первым шагом).
-import typedocSidebar from '../api/typedoc-sidebar.json'
+import typedocSidebar from '../api/typedoc-sidebar.json' with { type: 'json' }
 
 const REPO_URL = 'https://github.com/andrey-aka-skif/app-errors'
 
