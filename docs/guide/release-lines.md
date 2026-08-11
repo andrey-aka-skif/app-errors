@@ -8,8 +8,8 @@
 | Линия | Ветка                                                                       | Последний выпуск                                                                         | dist-tag |
 | ----- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------- |
 | 4.x   | [master](https://github.com/andrey-aka-skif/app-errors/tree/master)         | [4.0.1](https://github.com/andrey-aka-skif/app-errors/releases/tag/v4.0.1) от 09.08.2026 | `latest` |
-| 3.x   | [release/v3](https://github.com/andrey-aka-skif/app-errors/tree/release/v3) | [3.2.2](https://github.com/andrey-aka-skif/app-errors/releases/tag/v3.2.2) от 09.08.2026 | `v3-lts` |
-| 2.x   | [release/v2](https://github.com/andrey-aka-skif/app-errors/tree/release/v2) | [2.1.1](https://github.com/andrey-aka-skif/app-errors/releases/tag/v2.1.1) от 09.08.2026 | `v2-lts` |
+| 3.x   | [release/v3](https://github.com/andrey-aka-skif/app-errors/tree/release/v3) | [3.2.2](https://github.com/andrey-aka-skif/app-errors/releases/tag/v3.2.2) от 09.08.2026 | `lts-v3` |
+| 2.x   | [release/v2](https://github.com/andrey-aka-skif/app-errors/tree/release/v2) | [2.1.1](https://github.com/andrey-aka-skif/app-errors/releases/tag/v2.1.1) от 09.08.2026 | `lts-v2` |
 
 Все три линии требуют Node.js 22 или новее и отдают ESM и UMD одинаковым набором
 условных экспортов; линия 2.x дополнительно сохраняет подпути `./error-types`,
@@ -26,7 +26,7 @@ npm install @andrey-aka-skif/app-errors
 Линии сопровождения ставятся по dist-tag или по диапазону версий:
 
 ```shell
-npm install @andrey-aka-skif/app-errors@v3-lts
+npm install @andrey-aka-skif/app-errors@lts-v3
 ```
 
 ```shell
@@ -40,15 +40,16 @@ npm install @andrey-aka-skif/app-errors@^3
 
 - тег старше всех остальных → `latest`;
 - предрелиз (GitHub Release помечен как pre-release) → `next`;
-- тег не старший, то есть патч линии сопровождения → `<мажор>-lts`, например
-  `v3-lts`;
-- ручной запуск workflow без указания метки → `replay`.
+- тег не старший, то есть патч линии сопровождения → `lts-<мажор>`, например
+  `lts-v3`.
 
 Смысл правила в том, что патч старой линии, выпущенный после новой мажорной
 версии, иначе увёл бы `latest` назад: `npm install` без уточнений начал бы
-ставить 3.x после выхода 4.0. Метка `replay` служит той же цели при
-пересборке и переиздании уже выпущенной версии — она паркует публикацию, не
-трогая `latest`.
+ставить 3.x после выхода 4.0.
+
+Почему метка называется `lts-v3`, а не `v3-lts`, и какие ещё ограничения
+действуют на её имя — в разделе
+[«Разработка»](https://andrey-aka-skif.github.io/app-errors/guide/development).
 
 ## Переход между линиями
 

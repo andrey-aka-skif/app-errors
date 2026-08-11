@@ -287,3 +287,4 @@ appError.message // 'Bad Gateway'
 
 - [Документация](https://andrey-aka-skif.github.io/app-errors/)
 - [История версий](https://github.com/andrey-aka-skif/app-errors/blob/master/CHANGELOG.md)
+- [Разработка и выпуск](https://github.com/andrey-aka-skif/app-errors/blob/master/CONTRIBUTING.md)
