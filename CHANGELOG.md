@@ -222,6 +222,7 @@ _Версия не помечена тегом, ссылки на сравнен
   - `AppErrorViaSuperagent` (аналогично).
 - Первоначальная документация.
 
+[4.0.2]: https://github.com/andrey-aka-skif/app-errors/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/andrey-aka-skif/app-errors/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/andrey-aka-skif/app-errors/compare/v3.2.1...v4.0.0
 [3.2.0]: https://github.com/andrey-aka-skif/app-errors/compare/v3.1.6...v3.2.0
