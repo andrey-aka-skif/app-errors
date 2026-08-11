@@ -26,10 +26,8 @@ env:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
-    container:
-      # Мажор дублирует NODE_VERSION и правится вместе с ним.
-      image: node:24-bookworm
+    # Метку node-24 раннер отображает на образ node:24-bookworm.
+    runs-on: node-24
 
     steps:
       # fetch-depth: 0 — нужен полный список тегов: dist-tag latest достаётся
