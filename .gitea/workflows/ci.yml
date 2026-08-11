@@ -6,14 +6,10 @@ on:
   push:
     branches: ['**']
 
-env:
-  # Active LTS: с 28.10.2025, EOL 28.04.2028
-  NODE_VERSION: '24.x'
-
 jobs:
   build:
-    # Метку раннер отображает на образ node:24-bookworm. Мажор дублирует
-    # NODE_VERSION и правится вместе с ним.
+    # Метку node-24 раннер отображает на образ node:24-bookworm.
+    # Active LTS: с 28.10.2025, EOL 28.04.2028.
     runs-on: node-24
 
     steps:
@@ -23,7 +19,6 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
       - name: Install dependencies
