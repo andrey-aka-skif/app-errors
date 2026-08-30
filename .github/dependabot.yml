@@ -19,6 +19,12 @@ updates:
       interval: 'weekly'
     commit-message:
       prefix: 'chore'
+    ignore:
+      # typescript стоит ради typedoc, своего кода на нём нет. Мажор выходит за
+      # peer-диапазон typedoc и роняет npm ci всей группе. Снять, когда typedoc
+      # пустит дальше 6.0.x.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
     groups:
       dev-dependencies:
         dependency-type: 'development'
