@@ -21,7 +21,7 @@ permissions:
 env:
   # Active LTS: с 28.10.2025, EOL 28.04.2028
   NODE_VERSION: '24.x'
-  REGISTRY_URL: 'https://192.168.100.252:3000/api/packages/usov-andrey/npm/'
+  REGISTRY_URL: 'https://${{ vars.REGISTRY_HOST }}/api/packages/${{ vars.REGISTRY_OWNER }}/npm/'
   NPM_SCOPE: '@andrey-aka-skif'
   TAG_PATTERN: '^v[0-9]+\.[0-9]+\.[0-9]+$'
   # Грубый префильтр для git tag --list, точный отбор делает TAG_PATTERN.
