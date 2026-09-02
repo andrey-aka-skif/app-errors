@@ -41,6 +41,7 @@
   "scripts": {
     "prebuild": "prettier --check .",
     "build": "vite build",
+    "postbuild": "npm run lint:publish",
     "test": "vitest run",
     "pretest:dist": "npm run build",
     "test:dist": "vitest run --config vitest.dist.config.js",
@@ -49,6 +50,7 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "lint:publish": "publint --strict",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -61,6 +63,7 @@
     "eslint-config-prettier": "^10.1.5",
     "globals": "^17.9.0",
     "prettier": "^3.9.6",
+    "publint": "^0.3.24",
     "terser": "^5.49.2",
     "vite": "^8.2.0",
     "vitest": "^4.1.10"
