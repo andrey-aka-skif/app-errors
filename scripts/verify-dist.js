@@ -12,14 +12,21 @@
  * их на сборке значило бы держать два описания одного контракта.
  *
  * Обе сборки проверяются отдельно: terser проходит по ESM и UMD независимо.
+ * Грузятся они по имени пакета, а не по пути в dist, — так под проверку
+ * попадает и карта exports.
+ *
  * Эталон берётся из src/index.js, а не из зашитого перечня: ручной список
  * молча пропустил бы вновь добавленный класс.
  */
 
 import { readdirSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { fileURLToPath, URL } from 'node:url'
 
 const DIST = fileURLToPath(new URL('../dist', import.meta.url))
+const PACKAGE_NAME = '@andrey-aka-skif/app-errors'
+
+const require = createRequire(import.meta.url)
 
 const failures = []
 
@@ -41,7 +48,7 @@ const report = () => {
 
 const files = readdirSync(DIST)
 check(files.includes('index.es.js'), 'В dist/ нет index.es.js')
-check(files.includes('index.umd.js'), 'В dist/ нет index.umd.js')
+check(files.includes('index.umd.cjs'), 'В dist/ нет index.umd.cjs')
 
 // Без файлов проверять нечего: дальше их пришлось бы загружать.
 report()
@@ -106,7 +113,7 @@ const verifyBundle = (label, bundle) => {
     )
     // Цепочка прототипов — второе, что рвётся при сборке: наследование
     // компилируется, и потерянное звено видно только на собранном классе.
-    // Сравнение с AppError своей сборки: у ESM и UMD это разные классы.
+    // Сравнение с AppError своей сборки: у ESM и CJS это разные классы.
     check(
       instance instanceof bundle.AppError,
       `${label}/${className}: экземпляр не является AppError`
@@ -114,24 +121,14 @@ const verifyBundle = (label, bundle) => {
   }
 }
 
-// Именно href: динамический import на Windows не принимает путь вида "D:\...".
-verifyBundle(
-  'ESM',
-  await import(new URL('../dist/index.es.js', import.meta.url).href)
-)
+verifyBundle('ESM', await import(PACKAGE_NAME))
 
-// UMD-сборка не экспортирует ничего по-модульному: при загрузке она кладёт
-// экспорты в globalThis под именем из build.lib.name.
-await import(new URL('../dist/index.umd.js', import.meta.url).href)
-
-if (globalThis.appErrors) {
-  verifyBundle('UMD', globalThis.appErrors)
-} else {
-  failures.push('UMD-сборка не завела globalThis.appErrors')
-}
+// createRequire идёт прямо к загрузчику Node: только так видно, читает он
+// файл как ESM или как CJS.
+verifyBundle('CJS', require(PACKAGE_NAME))
 
 report()
 
 console.log(
-  '✅ Собранный пакет проверен: обе сборки, имена и наследование на месте'
+  '✅ Собранный пакет проверен: обе сборки, точки входа, имена и наследование на месте'
 )

@@ -35,8 +35,11 @@ src/
 ## Сборка
 
 Сборку ведёт Vite в режиме библиотеки ([vite.config.js](https://github.com/andrey-aka-skif/app-errors/blob/release/v2/vite.config.js)):
-из `src/index.js` получаются `dist/index.es.js` (ESM) и `dist/index.umd.js`
+из `src/index.js` получаются `dist/index.es.js` (ESM) и `dist/index.umd.cjs`
 (UMD, глобальная переменная `appErrors`).
+
+Расширение `.cjs` у второй сборки обязательно: при `"type": "module"` файл с
+`.js` Node читает как ESM, и UMD-обёртка не отрабатывает.
 
 ```shell
 npm run build
@@ -50,7 +53,9 @@ npm run build
 [scripts/verify-dist.js](https://github.com/andrey-aka-skif/app-errors/blob/release/v2/scripts/verify-dist.js)
 проверяет то, чего не видят юнит-тесты: они гоняются по `src/` и не знают, что
 с кодом делают бандлер и минификатор. Проверяются обе сборки — terser проходит
-по ESM и UMD независимо.
+по ним независимо. Грузятся они по имени пакета, а не по пути в `dist`: ESM
+через `import`, CommonJS через `createRequire`, — поэтому под проверку попадает
+и карта `exports`.
 
 ```shell
 npm run verify:dist
