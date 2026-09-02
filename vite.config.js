@@ -6,7 +6,9 @@ export default defineConfig({
     lib: {
       entry: fileURLToPath(new URL('./src/index.js', import.meta.url)),
       name: 'appErrors',
-      fileName: format => `index.${format}.js`,
+      // Расширение `.cjs` у UMD-сборки обязательно: при `"type": "module"`
+      // файл с `.js` Node читает как ESM, и обёртка не отрабатывает.
+      fileName: format => `index.${format}.${format === 'umd' ? 'cjs' : 'js'}`,
       formats: ['es', 'umd'],
     },
     sourcemap: true,
