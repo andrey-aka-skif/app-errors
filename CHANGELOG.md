@@ -3,6 +3,32 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Этот проект придерживается [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2026-09-02
+
+Выпуск чинит вход для `require` и разводит вторую сборку на две: одна для
+CommonJS, другая для браузера. Публичное API не изменилось.
+
+### Добавлено
+
+- Подпуть `./browser` ведёт на браузерную сборку `dist/index.iife.js`. Она
+  подключается тегом `script` и объявляет глобаль `appErrors`.
+
+### Исправлено
+
+- Точка входа для `require` больше не пуста. `exports.require` вёл на
+  `dist/index.umd.js`, а при `"type": "module"` Node читает `.js` как ESM:
+  UMD-обёртка не отрабатывала, и `require('@andrey-aka-skif/app-errors')`
+  возвращал ноль экспортов — молча, без ошибки. `import` работал штатно.
+
+### Изменено
+
+- Вторая сборка расщеплена на CommonJS и браузерную, состав `dist` изменился:
+  вместо `index.es.js` и `index.umd.js` выпускаются `index.js`, `index.cjs` и
+  `index.iife.js`. Потребителя, который обращается к пакету по имени, это не
+  задевает: точку входа выбирает карта `exports`.
+- Проверка собранного пакета грузит сборки по имени пакета, а не по пути в
+  `dist`, и потому видит карту `exports`.
+
 ## [4.0.3] - 2026-08-12
 
 Код пакета не изменился с версии 4.0.2. Выпуск обновляет сопровождение:
@@ -232,6 +258,7 @@ _Версия не помечена тегом, ссылки на сравнен
   - `AppErrorViaSuperagent` (аналогично).
 - Первоначальная документация.
 
+[4.1.0]: https://github.com/andrey-aka-skif/app-errors/compare/v4.0.4...v4.1.0
 [4.0.3]: https://github.com/andrey-aka-skif/app-errors/compare/v4.0.2...v4.0.3
 [4.0.2]: https://github.com/andrey-aka-skif/app-errors/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/andrey-aka-skif/app-errors/compare/v4.0.0...v4.0.1
