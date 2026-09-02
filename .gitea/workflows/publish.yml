@@ -107,8 +107,8 @@ jobs:
           echo "npm-tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
           echo "Тег: $TAG, версия: ${TAG#v}, dist-tag: $NPM_TAG"
 
-      - name: Build
-        run: npm run build
+      - name: Сборка и проверка точек входа
+        run: npm run test:dist
 
       # Здесь остаётся PAT, в отличие от GitHub. Автоматический GITEA_TOKEN
       # не имеет авторизации на запись в реестр пакетов — документация Gitea
