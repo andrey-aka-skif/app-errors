@@ -7,13 +7,15 @@
 
 | Линия | Ветка                                                                       | Последний выпуск                                                                         | dist-tag |
 | ----- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------- |
-| 4.x   | [master](https://github.com/andrey-aka-skif/app-errors/tree/master)         | [4.0.1](https://github.com/andrey-aka-skif/app-errors/releases/tag/v4.0.1) от 09.08.2026 | `latest` |
-| 3.x   | [release/v3](https://github.com/andrey-aka-skif/app-errors/tree/release/v3) | [3.2.2](https://github.com/andrey-aka-skif/app-errors/releases/tag/v3.2.2) от 09.08.2026 | `lts-v3` |
-| 2.x   | [release/v2](https://github.com/andrey-aka-skif/app-errors/tree/release/v2) | [2.1.1](https://github.com/andrey-aka-skif/app-errors/releases/tag/v2.1.1) от 09.08.2026 | `lts-v2` |
+| 4.x   | [master](https://github.com/andrey-aka-skif/app-errors/tree/master)         | [4.0.4](https://github.com/andrey-aka-skif/app-errors/releases/tag/v4.0.4) от 30.08.2026 | `latest` |
+| 3.x   | [release/v3](https://github.com/andrey-aka-skif/app-errors/tree/release/v3) | [3.2.3](https://github.com/andrey-aka-skif/app-errors/releases/tag/v3.2.3) от 11.08.2026 | `lts-v3` |
+| 2.x   | [release/v2](https://github.com/andrey-aka-skif/app-errors/tree/release/v2) | [2.1.2](https://github.com/andrey-aka-skif/app-errors/releases/tag/v2.1.2) от 11.08.2026 | `lts-v2` |
 
-Все три линии требуют Node.js 22 или новее и отдают ESM и UMD одинаковым набором
-условных экспортов; линия 2.x дополнительно сохраняет подпути `./error-types`,
-`./logic`, `./axios` и `./superagent` — они ведут в тот же бандл и в 3.x убраны.
+Все три линии требуют Node.js 22 или новее. Линия 4.x отдаёт три сборки: ESM и
+CommonJS условными экспортами точки входа и браузерную подпутью `./browser`.
+Линии сопровождения пока отдают ESM и UMD одним набором условных экспортов.
+Линия 2.x дополнительно сохраняет подпути `./error-types`, `./logic`, `./axios`
+и `./superagent` — они ведут в тот же бандл и в 3.x убраны.
 
 ## Установка версии из линии сопровождения
 

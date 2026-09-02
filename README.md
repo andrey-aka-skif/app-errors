@@ -24,6 +24,19 @@ npm install @andrey-aka-skif/app-errors
 
 > Поле `version` в `package.json` репозитория всегда равно `0.0.0` — это заглушка, а не ошибка. Реальную версию проставляет CI при публикации, беря её из git-тега вида `v1.2.3`. В опубликованном пакете версия корректная.
 
+## Подключение в браузере без сборщика
+
+В пакете есть отдельная браузерная сборка `dist/index.iife.js`. Её достаточно скопировать в статику проекта и подключить тегом — библиотека объявляет глобаль `appErrors`:
+
+```html
+<script src="/vendor/app-errors.js"></script>
+<script>
+  console.log(new appErrors.NotFoundError().type)
+</script>
+```
+
+Проектам со сборщиком этот файл не нужен: `import` и `require` берут ESM- и CJS-сборки сами.
+
 ## Просмотр документации
 
 Справочник API создаётся [TypeDoc](https://typedoc.org/) из JSDoc-комментариев в `src/`, сайт собирает [VitePress](https://vitepress.dev/). Собранная документация расположена на сервисе [github.io](https://andrey-aka-skif.github.io/app-errors/).

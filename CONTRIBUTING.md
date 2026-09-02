@@ -34,9 +34,12 @@ src/
 ## Сборка
 
 Сборку ведёт Vite в режиме библиотеки ([vite.config.js](https://github.com/andrey-aka-skif/app-errors/blob/master/vite.config.js)):
-из `src/index.js` получаются `dist/index.es.js` (ESM) и `dist/index.umd.js`
-(UMD, глобальная переменная `appErrors`). Обе сборки минифицируются terser'ом
-и снабжаются картами кода.
+из `src/index.js` получаются `dist/index.js` (ESM), `dist/index.cjs` (CommonJS)
+и `dist/index.iife.js` (браузер, глобальная переменная `appErrors`). Все три
+сборки минифицируются terser'ом и снабжаются картами кода.
+
+`build.lib.fileName` задан строкой: расширения тогда подбирает Vite — при
+`"type": "module"` это `.cjs` формату `cjs` и `.js` остальным.
 
 ```shell
 npm run build
@@ -58,7 +61,10 @@ npm run build
   присваивание анонимного выражения;
 - цепочка прототипов на месте: экземпляр остаётся `BaseAppError`.
 
-Проверяются обе сборки: terser проходит по ESM и UMD независимо.
+Проверяются все три сборки: terser проходит по ним независимо. Грузятся они по
+имени пакета, а не по пути в `dist` — ESM через `import`, CommonJS через
+`createRequire`, браузерная запуском в контексте `node:vm`, — поэтому под
+проверку попадает и карта `exports`.
 
 ```shell
 npm run verify:dist
