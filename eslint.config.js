@@ -24,7 +24,7 @@ export default defineConfig([
 
   {
     ...pluginVitest.configs.recommended,
-    files: ['tests/**/*.test.js'],
+    files: ['tests/**/*.test.js', 'tests-dist/**/*.test.js'],
   },
 
   eslintConfigPrettier,
@@ -42,7 +42,7 @@ export default defineConfig([
 
   {
     name: 'app/node-scripts',
-    files: ['*.config.js', 'scripts/**/*.js'],
+    files: ['*.config.js'],
     languageOptions: {
       globals: {
         ...globals.node,

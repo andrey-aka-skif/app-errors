@@ -33,35 +33,42 @@ src/
 ## Сборка
 
 Сборку ведёт Vite в режиме библиотеки ([vite.config.js](https://github.com/andrey-aka-skif/app-errors/blob/release/v3/vite.config.js)):
-из `src/index.js` получаются `dist/index.es.js` (ESM) и `dist/index.umd.js`
-(UMD, глобальная переменная `appErrors`). Обе сборки минифицируются terser'ом
-и снабжаются картами кода.
+из `src/index.js` получаются `dist/index.js` (ESM), `dist/index.cjs` (CommonJS)
+и `dist/index.iife.js` (браузер, глобальная переменная `appErrors`). Все три
+сборки минифицируются terser'ом и снабжаются картами кода.
+
+`build.lib.fileName` задан строкой: расширения тогда подбирает Vite — при
+`"type": "module"` это `.cjs` формату `cjs` и `.js` остальным.
 
 ```shell
 npm run build
 ```
 
-Скрипт обвязан двумя хуками: `prebuild` проверяет форматирование, `postbuild`
-запускает проверку собранного пакета.
+Скрипт обвязан хуком `prebuild`: он проверяет форматирование.
 
 ## Проверка собранного пакета
 
-[scripts/verify-dist.js](https://github.com/andrey-aka-skif/app-errors/blob/release/v3/scripts/verify-dist.js)
-проверяет ровно то, чего не видят юнит-тесты, — что переживает бандлер и
-минификатор:
+Тесты в `tests-dist/` проверяют то, чего не видят юнит-тесты по `src/`:
 
-- набор экспортов совпадает с `src/index.js`;
+- точки входа отдают публичные экспорты — `import`, `require` и подключение
+  браузерной сборки тегом `script`;
 - значения `ERROR_TYPE` не разошлись с исходником;
 - у каждого класса ошибки сохранилось имя (`instance.name`) — минификатор
   способен его срезать, если сборщик превратил объявление класса в
   присваивание анонимного выражения;
 - цепочка прототипов на месте: экземпляр остаётся `BaseAppError`.
 
-Проверяются обе сборки: terser проходит по ESM и UMD независимо.
-
 ```shell
-npm run verify:dist
+npm run test:dist
 ```
+
+Хук `pretest:dist` собирает пакет, поэтому команда самодостаточна. Отдельный
+конфиг `vitest.dist.config.js` держит эти тесты вне выборки `npm test`: им
+нужен готовый `dist`.
+
+Сборки грузятся по имени пакета, а не по пути в `dist` — ESM через `import`,
+CommonJS через `createRequire`, браузерная запуском в контексте `node:vm`, —
+поэтому под проверку попадает и карта `exports`.
 
 ## Тесты
 

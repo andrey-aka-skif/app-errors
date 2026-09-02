@@ -104,8 +104,8 @@ jobs:
           echo "npm-tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
           echo "Тег: $TAG, версия: ${TAG#v}, dist-tag: $NPM_TAG"
 
-      - name: Build
-        run: npm run build
+      - name: Сборка и проверка точек входа
+        run: npm run test:dist
 
       # Встроенный токен вместо PAT: он не истекает, не требует ручного
       # обновления и ограничен этим репозиторием. Права даёт блок permissions.
