@@ -63,8 +63,8 @@ jobs:
           tag: ${{ github.ref_name }}
           prerelease: ${{ github.event.release.prerelease }}
 
-      - name: Build
-        run: npm run build
+      - name: Сборка и проверка точек входа
+        run: npm run test:dist
 
       # Встроенный токен вместо PAT: он не истекает, не требует ручного
       # обновления и ограничен этим репозиторием. Права даёт блок permissions.
