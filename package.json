@@ -41,9 +41,9 @@
   "scripts": {
     "prebuild": "prettier --check .",
     "build": "vite build",
-    "postbuild": "npm run lint:publish",
+    "postbuild": "npm run lint:publish && npm run test:dist",
+    "pretest": "npm run lint",
     "test": "vitest run",
-    "pretest:dist": "npm run build",
     "test:dist": "vitest run --config vitest.dist.config.js",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
