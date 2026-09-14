@@ -3,6 +3,11 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/).
 Этот проект придерживается [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.2] - 2026-09-14
+
+Код пакета не изменился с версии 4.1.1. Выпуск обновляет сопровождение:
+проверки перенесены на хуки манифеста, обновлены зависимости разработки.
+
 ## [4.1.1] - 2026-09-02
 
 Код пакета не изменился с версии 4.1.0. Выпуск обновляет сопровождение:
@@ -268,6 +273,7 @@ _Версия не помечена тегом, ссылки на сравнен
   - `AppErrorViaSuperagent` (аналогично).
 - Первоначальная документация.
 
+[4.1.2]: https://github.com/andrey-aka-skif/app-errors/compare/v4.1.1...v4.1.2
 [4.1.1]: https://github.com/andrey-aka-skif/app-errors/compare/v4.1.0...v4.1.1
 [4.1.0]: https://github.com/andrey-aka-skif/app-errors/compare/v4.0.4...v4.1.0
 [4.0.4]: https://github.com/andrey-aka-skif/app-errors/compare/v4.0.3...v4.0.4
