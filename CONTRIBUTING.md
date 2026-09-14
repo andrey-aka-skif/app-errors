@@ -10,8 +10,8 @@
 
 ## Требования
 
-Node.js 22 или новее (`engines.node` в манифесте). CI прогоняет сборку на 22.x
-и 24.x, публикация идёт на 24.x.
+Node.js 22 или новее (`engines.node` в манифесте). CI прогоняет сборку и тесты
+на 22.x и 24.x, публикация идёт на 24.x.
 
 ```shell
 npm ci
@@ -45,13 +45,14 @@ src/
 npm run build
 ```
 
-Скрипт обвязан двумя хуками: `prebuild` проверяет форматирование, `postbuild`
-запускает [publint](https://publint.dev/) — он проверяет манифест: пути в
-`exports`, наличие файлов по ним и рассогласование ESM и CJS.
+Команда проверяет больше, чем собирает, — проверки подвешены на хуки:
 
-```shell
-npm run lint:publish
-```
+- `prebuild` — форматирование (`prettier --check .`);
+- `postbuild` — [publint](https://publint.dev/) (`npm run lint:publish`): пути
+  в `exports`, наличие файлов по ним, рассогласование ESM и CJS; следом —
+  проверка собранного пакета (`npm run test:dist`).
+
+Падение любой из них роняет `npm run build`.
 
 ## Проверка собранного пакета
 
@@ -69,9 +70,9 @@ npm run lint:publish
 npm run test:dist
 ```
 
-Хук `pretest:dist` собирает пакет, поэтому команда самодостаточна. Отдельный
-конфиг `vitest.dist.config.js` держит эти тесты вне выборки `npm test`: им
-нужен готовый `dist`.
+Команда проверяет уже собранный `dist` и сама его не собирает: при
+`npm run build` она запускается хуком `postbuild`. Отдельный конфиг
+`vitest.dist.config.js` держит эти тесты вне выборки `npm test`.
 
 Сборки грузятся по имени пакета, а не по пути в `dist` — ESM через `import`,
 CommonJS через `createRequire`, браузерная запуском в контексте `node:vm`, —
@@ -87,6 +88,9 @@ Vitest, окружение `node` — библиотека не зависит �
 ```shell
 npm test
 ```
+
+Хук `pretest` сначала запускает линт. Команды ниже его не тянут — они для
+работы над кодом:
 
 ```shell
 npm run test:watch
@@ -133,6 +137,14 @@ npm run docs:build
 
 Сгенерированное (`docs/api/`, `docs/.vitepress/dist/`, `docs/.vitepress/cache/`)
 в репозиторий не попадает.
+
+## CI
+
+Воркфлоу вызывают только `npm run build` и `npm test` — всё проектное живёт в
+хуках манифеста. Поэтому локальный прогон этих двух команд проверяет ровно то
+же, что CI, а набор проверок меняется в `package.json` без правки воркфлоу.
+Воркфлоу следуют шаблонам
+[nii-energomash/automation](https://github.com/nii-energomash/automation/tree/master/ci-src).
 
 ## Версии и публикация
 
